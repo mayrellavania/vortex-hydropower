@@ -1,0 +1,7503 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>VORTEX HYDROPOWER DIGITAL TWIN</title>
+
+
+
+  <!-- Industrial Precision Typography: Inter & JetBrains Mono -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+
+
+  <!-- Tailwind CSS -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+
+    tailwind.config = {
+
+      theme: {
+
+        extend: {
+
+          fontFamily: {
+
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+
+            mono: ['JetBrains Mono', 'monospace'],
+
+          },
+
+        },
+
+      },
+
+    };
+
+  </script>
+
+
+
+  <!-- Three.js r128 & OrbitControls -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+
+
+  <style>
+
+    * {
+
+      box-sizing: border-box;
+
+      user-select: none;
+
+      -webkit-user-select: none;
+
+    }
+
+
+
+    html, body {
+
+      margin: 0;
+
+      padding: 0;
+
+      width: 100vw;
+
+      height: 100vh;
+
+      overflow: hidden;
+
+      background-color: #0b0f14;
+
+      color: #f1f5f9;
+
+      font-family: 'Inter', sans-serif;
+
+      -webkit-font-smoothing: antialiased;
+
+    }
+
+
+
+    #canvas-container {
+
+      position: fixed;
+
+      inset: 0;
+
+      width: 100vw;
+
+      height: 100vh;
+
+      background: radial-gradient(circle at 52% 44%, #131b26 0%, #0b0f14 68%, #070a0e 100%);
+
+      z-index: 1;
+
+    }
+
+
+
+    canvas {
+
+      display: block;
+
+      width: 100%;
+
+      height: 100%;
+
+      outline: none;
+
+      cursor: grab;
+
+    }
+
+
+
+    canvas:active {
+
+      cursor: grabbing;
+
+    }
+
+
+
+    .glass-panel {
+
+      background: rgba(12, 17, 25, 0.84);
+
+      backdrop-filter: blur(14px);
+
+      -webkit-backdrop-filter: blur(14px);
+
+      border: 1px solid rgba(255, 255, 255, 0.09);
+
+      box-shadow:
+
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+
+        0 14px 36px -8px rgba(0, 0, 0, 0.72);
+
+      border-radius: 12px;
+
+    }
+
+
+
+    .hairline {
+
+      border-color: rgba(255, 255, 255, 0.08);
+
+    }
+
+
+
+    .tabular {
+
+      font-variant-numeric: tabular-nums;
+
+    }
+
+
+
+    input[type="range"].cad-slider {
+
+      -webkit-appearance: none;
+
+      appearance: none;
+
+      width: 100%;
+
+      height: 5px;
+
+      border-radius: 999px;
+
+      background: rgba(255, 255, 255, 0.14);
+
+      outline: none;
+
+      cursor: pointer;
+
+    }
+
+
+
+    input[type="range"].cad-slider::-webkit-slider-thumb {
+
+      -webkit-appearance: none;
+
+      appearance: none;
+
+      width: 14px;
+
+      height: 14px;
+
+      border-radius: 50%;
+
+      background: #38bdf8;
+
+      border: 2px solid #0b0f14;
+
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.65), 0 2px 6px rgba(0, 0, 0, 0.5);
+
+      transition: transform 0.12s ease, background-color 0.12s ease;
+
+    }
+
+
+
+    input[type="range"].cad-slider::-webkit-slider-thumb:hover {
+
+      transform: scale(1.16);
+
+      background: #7dd3fc;
+
+    }
+
+
+
+    .seg-btn {
+
+      transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+      color: #94a3b8;
+
+      border: 1px solid transparent;
+
+    }
+
+
+
+    .seg-btn.active {
+
+      background: rgba(56, 189, 248, 0.18);
+
+      color: #e0f2fe;
+
+      border-color: rgba(56, 189, 248, 0.45);
+
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.14);
+
+    }
+
+
+
+    .seg-btn:not(.active):hover {
+
+      background: rgba(255, 255, 255, 0.06);
+
+      color: #f8fafc;
+
+    }
+
+
+
+    .asm-card {
+
+      transition: all 0.14s ease;
+
+      border: 1px solid rgba(255, 255, 255, 0.05);
+
+      background: rgba(255, 255, 255, 0.02);
+
+    }
+
+
+
+    .asm-card:hover {
+
+      background: rgba(255, 255, 255, 0.05);
+
+      border-color: rgba(255, 255, 255, 0.11);
+
+    }
+
+
+
+    .asm-card.selected {
+
+      background: rgba(56, 189, 248, 0.12);
+
+      border-color: rgba(56, 189, 248, 0.42);
+
+    }
+
+
+
+    #cad-pins-layer {
+
+      position: fixed;
+
+      inset: 0;
+
+      pointer-events: none;
+
+      z-index: 5;
+
+      overflow: hidden;
+
+    }
+
+
+
+    .cad-pin {
+
+      position: absolute;
+
+      transform: translate(0, -50%);
+
+      pointer-events: auto;
+
+      cursor: pointer;
+
+      display: flex;
+
+      align-items: center;
+
+      transition: opacity 0.16s ease;
+
+    }
+
+
+
+    .cad-pin-badge {
+
+      background: rgba(11, 15, 20, 0.90);
+
+      backdrop-filter: blur(8px);
+
+      border: 1px solid rgba(56, 189, 248, 0.42);
+
+      color: #e2e8f0;
+
+      font-family: 'JetBrains Mono', monospace;
+
+      font-size: 10px;
+
+      font-weight: 500;
+
+      letter-spacing: 0.03em;
+
+      padding: 2px 7px;
+
+      border-radius: 5px;
+
+      white-space: nowrap;
+
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.48);
+
+      transition: all 0.14s ease;
+
+    }
+
+
+
+    .cad-pin:hover .cad-pin-badge,
+
+    .cad-pin.active .cad-pin-badge {
+
+      background: #0284c7;
+
+      color: #ffffff;
+
+      border-color: #38bdf8;
+
+    }
+
+
+
+    .head-gauge-badge {
+
+      position: fixed;
+
+      z-index: 6;
+
+      pointer-events: none;
+
+      transform: translate(-50%, -50%);
+
+      background: rgba(11, 15, 20, 0.92);
+
+      backdrop-filter: blur(8px);
+
+      border: 1px solid rgba(56, 189, 248, 0.55);
+
+      color: #e0f2fe;
+
+      font-family: 'JetBrains Mono', monospace;
+
+      font-size: 10.5px;
+
+      font-weight: 600;
+
+      padding: 2px 8px;
+
+      border-radius: 6px;
+
+      white-space: nowrap;
+
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+
+    }
+
+
+
+    .thin-scroll::-webkit-scrollbar {
+
+      width: 4px;
+
+    }
+
+    .thin-scroll::-webkit-scrollbar-thumb {
+
+      background: rgba(255, 255, 255, 0.16);
+
+      border-radius: 999px;
+
+    }
+
+
+
+    @keyframes pulseDot {
+
+      0%, 100% { opacity: 1; transform: scale(1); }
+
+      50% { opacity: 0.45; transform: scale(0.84); }
+
+    }
+
+    .live-dot {
+
+      animation: pulseDot 2.2s infinite ease-in-out;
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Full-Bleed 3D CAD, WTP River & CFD Viewport -->
+
+  <div id="canvas-container"></div>
+
+
+
+  <!-- 3D CAD Leader-Line Annotations -->
+
+  <div id="cad-pins-layer">
+
+    <svg id="cad-leaders-svg" class="w-full h-full"></svg>
+
+    <div id="cad-pin-nodes"></div>
+
+  </div>
+
+
+
+  <!-- Projected 3D River Head Gauge Label -->
+
+  <div id="head-gauge-badge" class="head-gauge-badge tabular">ΔH = 0.74 m</div>
+
+
+
+  <!-- Solid CAD Part Hover Tooltip -->
+
+  <div id="hover-tooltip" class="fixed z-30 pointer-events-none opacity-0 transition-opacity duration-100">
+
+    <div class="bg-[#0b0f14]/95 text-slate-100 backdrop-blur-md px-2.5 py-1.5 rounded-lg shadow-xl border border-white/15 flex items-center gap-2">
+
+      <span id="tooltip-code" class="font-mono text-[10px] text-sky-400 font-semibold">01</span>
+
+      <span id="tooltip-name" class="text-xs font-medium tracking-tight">Spiral Vortex Basin</span>
+
+      <span id="tooltip-dim" class="font-mono text-[10px] text-slate-400 border-l border-white/15 pl-2">C30/37</span>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- Interactive 3D Water Surface CFD Probe Readout -->
+
+  <div id="cfd-probe" class="fixed z-30 pointer-events-none opacity-0 transition-opacity duration-75">
+
+    <div class="bg-[#0b0f14]/95 text-slate-100 backdrop-blur-md px-2.5 py-1.5 rounded-lg shadow-xl border border-sky-400/40 flex items-center gap-2.5 font-mono text-[10.5px] tabular">
+
+      <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+
+      <span>|V| <strong id="probe-vel" class="text-sky-300 font-semibold">3.42</strong> m/s</span>
+
+      <span class="text-white/15">|</span>
+
+      <span>P <strong id="probe-press" class="text-emerald-300 font-semibold">+4.8</strong> kPa</span>
+
+      <span class="text-white/15">|</span>
+
+      <span>ω <strong id="probe-vort" class="text-amber-300 font-semibold">18.4</strong> 1/s</span>
+
+      <span class="text-white/15">|</span>
+
+      <span>r <strong id="probe-rad" class="text-slate-200 font-semibold">0.94</strong> m</span>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================================
+
+       TOP BAR: Brand, Domain Workspace Toggle, Camera Views, Scalar Modes & Colorbar
+
+       ===================================================================== -->
+
+  <header class="fixed top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+
+    <!-- Brand & Live River Head Badge -->
+
+    <div class="glass-panel px-3 py-1.5 flex items-center gap-2.5 pointer-events-auto">
+
+      <div class="w-6 h-6 rounded-md bg-sky-500/15 border border-sky-400/35 flex items-center justify-center text-sky-400 shrink-0">
+
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+
+          <path d="M12 3a9 9 0 1 0 9 9" />
+
+          <path d="M12 7a5 5 0 1 0 5 5" />
+
+          <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+
+        </svg>
+
+      </div>
+
+      <div class="flex flex-col">
+
+        <span class="font-mono text-[11px] font-bold tracking-wider text-slate-100 uppercase leading-none">VORTEX HYDROPOWER DIGITAL TWIN</span>
+
+        <span class="font-mono text-[9px] text-slate-400 mt-0.5 tabular">Ø 900 mm · SCALED WTP &amp; CFD</span>
+
+      </div>
+
+      <span id="river-head-pill" class="hidden sm:inline-flex items-center gap-1.5 font-mono text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/12 border border-emerald-400/30 text-emerald-300 tabular">
+
+        <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot"></span>
+
+        <span id="status-text">WTP · H = 0.74 m</span>
+
+      </span>
+
+    </div>
+
+
+
+    <!-- Primary Domain Mode Switcher + Camera Presets + Scalar Modes -->
+
+    <div class="glass-panel p-1 flex flex-wrap items-center gap-1 pointer-events-auto">
+
+      <!-- Domain Workspace Switcher (From Code 2) -->
+
+      <button data-workspace="river" class="ws-btn seg-btn active px-2.5 py-1 rounded-lg font-mono text-[10.5px] font-semibold">1. RIVER &amp; WTP</button>
+
+      <button data-workspace="detail" class="ws-btn seg-btn px-2.5 py-1 rounded-lg font-mono text-[10.5px] font-semibold">2. TURBINE CORE</button>
+
+
+
+      <div class="h-4 w-[1px] bg-white/10 mx-0.5"></div>
+
+
+
+      <!-- Camera Presets (Combined Code 1 & Code 2) -->
+
+      <button data-cam="weir" class="cam-btn seg-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium">WEIR</button>
+
+      <button data-cam="iso" class="cam-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">ISO</button>
+
+      <button data-cam="top" class="cam-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">TOP</button>
+
+      <button data-cam="section" class="cam-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">SEC A-A</button>
+
+      <button data-cam="core" class="cam-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">CORE</button>
+
+
+
+      <div class="h-4 w-[1px] bg-white/10 mx-0.5"></div>
+
+
+
+      <!-- CFD Scalar Fields (From Code 1) -->
+
+      <button data-scalar="velocity" class="scalar-btn seg-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium">|V| VEL</button>
+
+      <button data-scalar="pressure" class="scalar-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">P PRES</button>
+
+      <button data-scalar="vorticity" class="scalar-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">ω VORT</button>
+
+      <button data-scalar="water" class="scalar-btn seg-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium">WATER</button>
+
+    </div>
+
+
+
+    <!-- Scalar Colorbar Legend -->
+
+    <div class="glass-panel px-3 py-1.5 hidden xl:flex items-center gap-2.5 pointer-events-auto">
+
+      <span id="cb-title" class="font-mono text-[10px] font-semibold text-slate-200 uppercase">|V|</span>
+
+      <span id="cb-min" class="font-mono text-[10px] text-slate-400 tabular">0.0</span>
+
+      <div id="cb-gradient" class="w-24 h-2 rounded-sm border border-white/15" style="background: linear-gradient(90deg, #30123b 0%, #28bbec 28%, #a2fc3c 55%, #fb8022 80%, #7a0403 100%);"></div>
+
+      <span id="cb-max" class="font-mono text-[10px] text-slate-300 tabular">4.2</span>
+
+      <span id="cb-unit" class="font-mono text-[9.5px] text-slate-400">m/s</span>
+
+    </div>
+
+  </header>
+
+
+
+  <!-- =====================================================================
+
+       LEFT COMPACT GLASS PANEL:
+
+       River Hydraulics, Operating Regimes, WTP Channel Specs & Live KPIs
+
+       ===================================================================== -->
+
+  <aside id="left-drawer" class="fixed top-16 left-3 z-20 w-64 sm:w-[272px] max-h-[calc(100vh-124px)] flex flex-col gap-2 overflow-y-auto thin-scroll pointer-events-none">
+
+    <!-- Hydraulic Boundary Controls -->
+
+    <div class="glass-panel p-2.5 pointer-events-auto">
+
+      <div class="flex items-center justify-between pb-1.5 mb-2 border-b hairline">
+
+        <span class="font-mono text-[9.5px] font-semibold tracking-wider text-slate-300 uppercase">River &amp; WTP Hydraulics</span>
+
+        <button id="btn-snap-wtp" class="font-mono text-[9.5px] text-sky-400 hover:text-sky-300 px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-400/25 transition-colors" title="Snap to WTP Scaled Operating Point (H=0.74m, Q=0.55m³/s)">
+
+          WTP NOM
+
+        </button>
+
+      </div>
+
+
+
+      <div class="flex flex-col gap-2.5">
+
+        <!-- Net Head H: 0.40 - 1.50 m -->
+
+        <div>
+
+          <div class="flex items-center justify-between mb-1">
+
+            <label for="slider-head" class="font-mono text-[10px] text-slate-300 uppercase">Net Head H</label>
+
+            <span class="font-mono text-xs font-semibold text-sky-300 tabular"><span id="val-head">0.74</span> <span class="text-[10px] text-slate-400 font-normal">m</span></span>
+
+          </div>
+
+          <div class="relative flex items-center">
+
+            <input id="slider-head" type="range" min="0.40" max="1.50" step="0.01" value="0.74" class="cad-slider" />
+
+            <span class="pointer-events-none absolute top-2.5 left-[30.9%] -translate-x-1/2 w-[1.5px] h-1.5 bg-emerald-400/80 rounded-full"></span>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- River Discharge Q: 0.30 - 2.40 m³/s -->
+
+        <div>
+
+          <div class="flex items-center justify-between mb-1">
+
+            <label for="slider-flow" class="font-mono text-[10px] text-slate-300 uppercase">Flow Rate Q</label>
+
+            <span class="font-mono text-xs font-semibold text-sky-300 tabular"><span id="val-flow">0.55</span> <span class="text-[10px] text-slate-400 font-normal">m³/s</span></span>
+
+          </div>
+
+          <input id="slider-flow" type="range" min="0.30" max="2.40" step="0.01" value="0.55" class="cad-slider" />
+
+        </div>
+
+
+
+        <!-- 4 Operating Regime Presets -->
+
+        <div class="grid grid-cols-2 gap-1 pt-0.5">
+
+          <button data-preset="wtp074" class="preset-btn seg-btn active py-1 px-1.5 rounded-lg font-mono text-[9.5px] font-medium">WTP 0.55m³/s</button>
+
+          <button data-preset="river135" class="preset-btn seg-btn py-1 px-1.5 rounded-lg font-mono text-[9.5px] font-medium">River 1.35m³/s</button>
+
+          <button data-preset="highflow" class="preset-btn seg-btn py-1 px-1.5 rounded-lg font-mono text-[9.5px] font-medium">High Flow</button>
+
+          <button data-preset="lockout" class="preset-btn seg-btn py-1 px-1.5 rounded-lg font-mono text-[9.5px] font-medium">Sluice Lockout</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Crisp 2x3 Numeric Telemetry Grid -->
+
+    <div class="glass-panel p-2.5 pointer-events-auto">
+
+      <div class="grid grid-cols-2 gap-1.5">
+
+        <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+
+          <div class="font-mono text-[9px] text-slate-400 uppercase">P_elec (Wire)</div>
+
+          <div class="mt-0.5 flex items-baseline gap-1">
+
+            <span id="kpi-pelec" class="font-mono text-sm font-semibold text-emerald-300 tabular">2.16</span>
+
+            <span class="font-mono text-[9.5px] text-slate-400">kW</span>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+
+          <div class="font-mono text-[9px] text-slate-400 uppercase">P_hyd (Water)</div>
+
+          <div class="mt-0.5 flex items-baseline gap-1">
+
+            <span id="kpi-phyd" class="font-mono text-sm font-semibold text-slate-100 tabular">3.99</span>
+
+            <span class="font-mono text-[9.5px] text-slate-400">kW</span>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+
+          <div class="font-mono text-[9px] text-slate-400 uppercase">η_sys</div>
+
+          <div class="mt-0.5 flex items-baseline gap-1">
+
+            <span id="kpi-eff" class="font-mono text-sm font-semibold text-sky-300 tabular">54.1</span>
+
+            <span class="font-mono text-[9.5px] text-slate-400">%</span>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+
+          <div class="font-mono text-[9px] text-slate-400 uppercase">Impeller</div>
+
+          <div class="mt-0.5 flex items-baseline gap-1">
+
+            <span id="kpi-rpm" class="font-mono text-sm font-semibold text-slate-100 tabular">82</span>
+
+            <span class="font-mono text-[9.5px] text-slate-400">RPM</span>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+
+          <div class="font-mono text-[9px] text-slate-400 uppercase">Spout v₀</div>
+
+          <div class="mt-0.5 flex items-baseline gap-1">
+
+            <span id="kpi-v0" class="font-mono text-sm font-semibold text-sky-300 tabular">3.81</span>
+
+            <span class="font-mono text-[9.5px] text-slate-400">m/s</span>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+
+          <div class="font-mono text-[9px] text-slate-400 uppercase">Daily Yield</div>
+
+          <div class="mt-0.5 flex items-baseline gap-1">
+
+            <span id="kpi-daily" class="font-mono text-sm font-semibold text-slate-100 tabular">52</span>
+
+            <span class="font-mono text-[9.5px] text-slate-400">kWh/d</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- WTP Civil Channel Dimensions Card (Integrated from Code 2) -->
+
+    <div class="glass-panel p-2.5 pointer-events-auto">
+
+      <div class="font-mono text-[9.5px] font-semibold tracking-wider text-slate-300 uppercase pb-1.5 mb-1.5 border-b hairline">
+
+        WTP Civil Channel Geometry
+
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5 font-mono text-[9.5px] tabular">
+
+        <div class="px-2 py-1 rounded bg-white/[0.03] border border-white/[0.05]">
+
+          <div class="text-slate-400">Upstream</div>
+
+          <div class="text-slate-200 font-semibold">W 6.30m · d 1.23m</div>
+
+        </div>
+
+        <div class="px-2 py-1 rounded bg-white/[0.03] border border-white/[0.05]">
+
+          <div class="text-slate-400">Downstream</div>
+
+          <div class="text-slate-200 font-semibold">W 3.90m · d 0.54m</div>
+
+        </div>
+
+        <div class="px-2 py-1 rounded bg-white/[0.03] border border-white/[0.05]">
+
+          <div class="text-slate-400">Weir Drop</div>
+
+          <div class="text-slate-200 font-semibold">W 5.10m · H 0.74m</div>
+
+        </div>
+
+        <div class="px-2 py-1 rounded bg-white/[0.03] border border-white/[0.05]">
+
+          <div class="text-slate-400">Spiral Basin</div>
+
+          <div class="text-sky-300 font-semibold">2150 × 1750 mm</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- =====================================================================
+
+       RIGHT COMPACT GLASS PANEL:
+
+       8-Subsystem BOM Inspector + CFD & Civil Layer Toggle Pills
+
+       ===================================================================== -->
+
+  <aside id="right-drawer" class="fixed top-16 right-3 z-20 w-64 sm:w-[272px] max-h-[calc(100vh-124px)] flex flex-col gap-2 pointer-events-none">
+
+    <!-- 8-Subsystem BOM List -->
+
+    <div class="glass-panel p-2.5 overflow-y-auto thin-scroll pointer-events-auto">
+
+      <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b hairline">
+
+        <span class="font-mono text-[9.5px] font-semibold tracking-wider text-slate-300 uppercase">Assemblies (8)</span>
+
+        <button id="btn-clear-part" class="hidden font-mono text-[9.5px] text-sky-400 hover:text-sky-300">SHOW ALL</button>
+
+      </div>
+
+
+
+      <div id="assembly-cards" class="flex flex-col gap-1">
+
+        <!-- Populated dynamically -->
+
+      </div>
+
+    </div>
+
+
+
+    <!-- CFD & Civil Layer Toggle Pills -->
+
+    <div class="glass-panel p-2.5 pointer-events-auto">
+
+      <div class="flex items-center justify-between pb-1.5 mb-2 border-b hairline">
+
+        <span class="font-mono text-[9.5px] font-semibold tracking-wider text-slate-300 uppercase">CFD &amp; Civil Layers</span>
+
+        <button id="toggle-vortex" class="font-mono text-[9px] text-sky-300 hover:text-sky-200 px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-400/30">
+
+          SURFACE ON
+
+        </button>
+
+      </div>
+
+
+
+      <div class="grid grid-cols-2 gap-1">
+
+        <button id="toggle-river" class="layer-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium flex items-center gap-1.5 bg-sky-500/15 text-sky-200 border border-sky-400/35 transition-all">
+
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+
+          <span>WTP Weir</span>
+
+        </button>
+
+        <button id="toggle-streamlines" class="layer-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium flex items-center gap-1.5 bg-sky-500/15 text-sky-200 border border-sky-400/35 transition-all">
+
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+
+          <span>Streamlines</span>
+
+        </button>
+
+        <button id="toggle-vectors" class="layer-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium flex items-center gap-1.5 bg-sky-500/15 text-sky-200 border border-sky-400/35 transition-all">
+
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+
+          <span>Vectors</span>
+
+        </button>
+
+        <button id="toggle-tracers" class="layer-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium flex items-center gap-1.5 bg-sky-500/15 text-sky-200 border border-sky-400/35 transition-all">
+
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+
+          <span>Tracers</span>
+
+        </button>
+
+        <button id="toggle-mesh" class="layer-btn px-2 py-1 rounded-lg font-mono text-[10px] font-medium flex items-center gap-1.5 bg-white/[0.03] text-slate-400 border border-white/10 transition-all">
+
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+
+          <span>CFD Mesh</span>
+
+        </button>
+
+        <button id="toggle-pins" class="layer-btn active px-2 py-1 rounded-lg font-mono text-[10px] font-medium flex items-center gap-1.5 bg-sky-500/15 text-sky-200 border border-sky-400/35 transition-all">
+
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+
+          <span>CAD Pins</span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- =====================================================================
+
+       BOTTOM FLOATING DOCK:
+
+       Inspection Modes (Assembled, Cutaway, X-Ray, Exploded + Continuous Slider)
+
+       ===================================================================== -->
+
+  <footer class="fixed bottom-3 left-1/2 -translate-x-1/2 z-20 max-w-[96vw] pointer-events-none">
+
+    <div class="glass-panel p-1.5 flex flex-wrap items-center justify-center gap-1.5 pointer-events-auto">
+
+      <button data-mode="assembled" class="mode-btn seg-btn active px-3 py-1 rounded-lg font-mono text-[10.5px] font-medium">Assembled</button>
+
+      <button data-mode="cutaway" class="mode-btn seg-btn px-3 py-1 rounded-lg font-mono text-[10.5px] font-medium">Cutaway</button>
+
+      <button data-mode="xray" class="mode-btn seg-btn px-3 py-1 rounded-lg font-mono text-[10.5px] font-medium">X-Ray</button>
+
+      <button data-mode="exploded" class="mode-btn seg-btn px-3 py-1 rounded-lg font-mono text-[10.5px] font-medium">Exploded</button>
+
+
+
+      <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
+
+
+
+      <div class="hidden sm:flex items-center gap-2 px-2">
+
+        <span class="font-mono text-[9.5px] text-slate-400 uppercase">Explode</span>
+
+        <input id="slider-explode" type="range" min="0" max="100" value="0" class="cad-slider w-24" />
+
+        <span id="val-explode" class="font-mono text-[10px] text-sky-300 tabular w-7 text-right">0%</span>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+
+  <script>
+
+    // =========================================================================
+
+    // 1. UNIFIED 8-SUBSYSTEM ENGINEERING METADATA (SCALED WTP + FULL CAD)
+
+    // =========================================================================
+
+    const SUBSYSTEMS = [
+
+      {
+
+        id: 'basin',
+
+        code: '01',
+
+        name: 'Spiral Vortex Basin',
+
+        pinLocal: new THREE.Vector3(-1.35, 1.48, -2.18),
+
+        pinOffset: { x: 76, y: -24 },
+
+        camPos: new THREE.Vector3(6.4, 5.6, 6.2),
+
+        camTarget: new THREE.Vector3(-0.2, 0.1, -0.2),
+
+        getMetrics: (sim) => [
+
+          { k: 'Material / Spec', v: 'C30/37 · 2150×1750 mm' },
+
+          { k: 'River Intake', v: 'Angled Fish Trash-Rack' },
+
+          { k: 'Design Net Head', v: `ΔH = ${sim.head.toFixed(2)} m` },
+
+        ],
+
+      },
+
+      {
+
+        id: 'shroud',
+
+        code: '02',
+
+        name: 'Outer Shroud & Flange',
+
+        pinLocal: new THREE.Vector3(-1.32, 0.04, 0.45),
+
+        pinOffset: { x: -84, y: -14 },
+
+        camPos: new THREE.Vector3(3.4, 2.0, 3.6),
+
+        camTarget: new THREE.Vector3(0.0, -0.15, 0.0),
+
+        getMetrics: (sim) => [
+
+          { k: 'Bellmouth Throat', v: 'Ø 980 mm / 12 Ribs' },
+
+          { k: 'Flange Fasteners', v: '16 × M24 + EPDM Seal' },
+
+          { k: 'Throat ΔP', v: `${(sim.head * 9.81).toFixed(2)} kPa` },
+
+        ],
+
+      },
+
+      {
+
+        id: 'impeller',
+
+        code: '03',
+
+        name: '5-Blade Impeller',
+
+        pinLocal: new THREE.Vector3(-0.56, 0.65, 0.15),
+
+        pinOffset: { x: -88, y: -22 },
+
+        camPos: new THREE.Vector3(3.1, 2.1, 3.2),
+
+        camTarget: new THREE.Vector3(0.0, 0.35, 0.0),
+
+        getMetrics: (sim) => {
+
+          const omega = (sim.rpm * 2 * Math.PI) / 60;
+
+          const torque = omega > 0.1 ? (sim.powerHyd * 1000 * 0.84) / omega : 0;
+
+          return [
+
+            { k: 'Runner / Material', v: 'Ø 900 mm / AISI 316L' },
+
+            { k: 'Shaft Torque', v: `${Math.round(torque).toLocaleString()} Nm` },
+
+            { k: 'Spout Velocity v₀', v: `${sim.v0.toFixed(2)} m/s` },
+
+          ];
+
+        },
+
+      },
+
+      {
+
+        id: 'gearbox',
+
+        code: '04',
+
+        name: 'Planetary Gearbox',
+
+        pinLocal: new THREE.Vector3(0.38, 0.62, 0.0),
+
+        pinOffset: { x: 86, y: -20 },
+
+        camPos: new THREE.Vector3(2.3, 1.4, 2.4),
+
+        camTarget: new THREE.Vector3(0.0, 0.55, 0.0),
+
+        getMetrics: (sim) => [
+
+          { k: 'Stage / Ratio', v: 'Planetary 1 : 15 IP68' },
+
+          { k: 'Coupling Flange', v: '20-Bolt Ring' },
+
+          { k: 'Generator Speed', v: `${Math.round(sim.rpm * 15)} RPM` },
+
+        ],
+
+      },
+
+      {
+
+        id: 'sealing',
+
+        code: '05',
+
+        name: 'Dual-Chamber Seal',
+
+        pinLocal: new THREE.Vector3(-0.34, -0.02, 0.0),
+
+        pinOffset: { x: -88, y: 0 },
+
+        camPos: new THREE.Vector3(2.2, 0.5, 2.2),
+
+        camTarget: new THREE.Vector3(0.0, -0.02, 0.0),
+
+        getMetrics: () => [
+
+          { k: 'Materials', v: 'SiC / Viton / Bronze' },
+
+          { k: 'Shaft Bore', v: 'Ø 95 mm Dual-Chamber' },
+
+          { k: 'Barrier Pressure', v: '2.4 bar Oil-Buffered' },
+
+        ],
+
+      },
+
+      {
+
+        id: 'generator',
+
+        code: '06',
+
+        name: 'Submersible Generator',
+
+        pinLocal: new THREE.Vector3(0.42, -0.65, 0.0),
+
+        pinOffset: { x: 86, y: 10 },
+
+        camPos: new THREE.Vector3(2.5, -0.45, 2.7),
+
+        camTarget: new THREE.Vector3(0.0, -0.68, 0.0),
+
+        getMetrics: (sim) => [
+
+          { k: 'Enclosure / Type', v: '3-Phase PMG / Ind IP68' },
+
+          { k: 'Stator Windings', v: '18 Cu Coils / 400 V' },
+
+          { k: 'Active Output', v: `${sim.powerElec.toFixed(2)} kW` },
+
+        ],
+
+      },
+
+      {
+
+        id: 'support',
+
+        code: '07',
+
+        name: 'Support & Umbilicals',
+
+        pinLocal: new THREE.Vector3(-0.78, -1.25, 0.45),
+
+        pinOffset: { x: -94, y: 16 },
+
+        camPos: new THREE.Vector3(3.6, -0.65, 3.8),
+
+        camTarget: new THREE.Vector3(0.0, -1.25, 0.0),
+
+        getMetrics: (sim) => [
+
+          { k: 'Frame / Material', v: 'S355 Steel + PUR Cables' },
+
+          { k: 'Anchor Plate', v: '16-Bolt Pier Skid' },
+
+          { k: 'Frame RMS', v: sim.stopped ? '0.01 mm/s' : `${(0.14 + (sim.rpm / 95) * 0.28).toFixed(2)} mm/s` },
+
+        ],
+
+      },
+
+      {
+
+        id: 'cabinet',
+
+        code: '08',
+
+        name: 'SCADA Control Cabinet',
+
+        pinLocal: new THREE.Vector3(0.0, 2.15, 0.0),
+
+        pinOffset: { x: 78, y: -22 },
+
+        camPos: new THREE.Vector3(1.8, 2.6, 8.2),
+
+        camTarget: new THREE.Vector3(-1.2, 1.3, 4.4),
+
+        getMetrics: (sim) => [
+
+          { k: 'Enclosure Spec', v: '660×1550×440 mm IP65' },
+
+          { k: 'Live Telemetry', v: `${sim.powerElec.toFixed(2)} kW @ ${sim.rpm} RPM` },
+
+          { k: 'Grid Synchronization', v: sim.stopped ? 'STANDBY' : 'LOCKED · 50.0 Hz' },
+
+        ],
+
+      },
+
+    ];
+
+
+
+    const CAMERA_PRESETS = {
+
+      weir: {
+
+        pos: new THREE.Vector3(6.8, 5.4, 7.6),
+
+        target: new THREE.Vector3(-0.6, 0.25, -0.4),
+
+      },
+
+      iso: {
+
+        pos: new THREE.Vector3(5.6, 4.9, 5.8),
+
+        target: new THREE.Vector3(-0.15, 0.05, -0.15),
+
+      },
+
+      top: {
+
+        pos: new THREE.Vector3(-0.15, 9.2, 0.02),
+
+        target: new THREE.Vector3(-0.15, 0.0, -0.15),
+
+      },
+
+      section: {
+
+        pos: new THREE.Vector3(0.0, 0.15, 7.6),
+
+        target: new THREE.Vector3(0.0, -0.15, 0.0),
+
+      },
+
+      core: {
+
+        pos: new THREE.Vector3(3.1, 1.85, 3.3),
+
+        target: new THREE.Vector3(0.0, -0.15, 0.0),
+
+      },
+
+    };
+
+
+
+    const SCALAR_CONFIGS = {
+
+      velocity: {
+
+        index: 0,
+
+        title: '|V|',
+
+        min: '0.0',
+
+        max: '4.2',
+
+        unit: 'm/s',
+
+        gradient: 'linear-gradient(90deg, #30123b 0%, #28bbec 28%, #a2fc3c 55%, #fb8022 80%, #7a0403 100%)',
+
+      },
+
+      pressure: {
+
+        index: 1,
+
+        title: 'Cp',
+
+        min: '-8.0',
+
+        max: '+14',
+
+        unit: 'kPa',
+
+        gradient: 'linear-gradient(90deg, #1d4ed8 0%, #38bdf8 28%, #f8fafc 50%, #fb923c 74%, #b91c1c 100%)',
+
+      },
+
+      vorticity: {
+
+        index: 2,
+
+        title: 'ω',
+
+        min: '0.0',
+
+        max: '36',
+
+        unit: '1/s',
+
+        gradient: 'linear-gradient(90deg, #0d0887 0%, #7e03a8 30%, #cc4778 58%, #f89540 82%, #f0f921 100%)',
+
+      },
+
+      water: {
+
+        index: 3,
+
+        title: 'ΔH',
+
+        min: '0.00',
+
+        max: '0.74',
+
+        unit: 'm',
+
+        gradient: 'linear-gradient(90deg, #042f3d 0%, #0284c7 45%, #38bdf8 78%, #e0f2fe 100%)',
+
+      },
+
+    };
+
+
+
+    // =========================================================================
+
+    // 2. UNIFIED APPLICATION STATE (DEFAULT: WTP H = 0.74 m, Q = 0.55 m³/s)
+
+    // =========================================================================
+
+    const state = {
+
+      workspace: 'river', // 'river' | 'detail'
+
+      viewMode: 'assembled', // 'assembled' | 'cutaway' | 'xray' | 'exploded'
+
+      scalarMode: 'velocity',
+
+      selectedPart: null,
+
+      hoveredPart: null,
+
+      showRiver: true,
+
+      showBasin: true,
+
+      showVortex: true,
+
+      showStreamlines: true,
+
+      showVectors: true,
+
+      showTracers: true,
+
+      showMesh: false,
+
+      showHeadGauge: true,
+
+      showPins: true,
+
+      flow: 0.55, // m³/s (WTP nominal = 0.55 m³/s)
+
+      head: 0.74, // m (WTP & River nominal = 0.74 m)
+
+      preset: 'wtp074',
+
+      stopped: false,
+
+      // Telemetry
+
+      powerElec: 2.16,
+
+      powerHyd: 3.99,
+
+      eff: 54.1,
+
+      rpm: 82,
+
+      v0: 3.81,
+
+      dailyKwh: 52,
+
+      // Smooth animation state
+
+      explodeFactor: 0,
+
+      targetExplodeOverride: null,
+
+      cutawayFactor: 0,
+
+      xrayFactor: 0,
+
+      riverFadeFactor: 1.0,
+
+      impellerAngle: 0,
+
+      gearAngle: 0,
+
+      cameraAnimating: false,
+
+      targetCamPos: CAMERA_PRESETS.weir.pos.clone(),
+
+      targetLookAt: CAMERA_PRESETS.weir.target.clone(),
+
+    };
+
+
+
+    // =========================================================================
+
+    // 3. THREE.JS SCENE, RENDERER & STUDIO LIGHTING
+
+    // =========================================================================
+
+    const container = document.getElementById('canvas-container');
+
+    const scene = new THREE.Scene();
+
+    scene.fog = new THREE.FogExp2(0x0b0f14, 0.017);
+
+
+
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+
+    camera.position.copy(CAMERA_PRESETS.weir.pos);
+
+
+
+    const renderer = new THREE.WebGLRenderer({
+
+      antialias: true,
+
+      alpha: true,
+
+      powerPreference: 'high-performance',
+
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    renderer.shadowMap.enabled = true;
+
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+    renderer.toneMappingExposure = 1.15;
+
+    container.appendChild(renderer.domElement);
+
+
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    controls.enableDamping = true;
+
+    controls.dampingFactor = 0.065;
+
+    controls.minDistance = 1.2;
+
+    controls.maxDistance = 24.0;
+
+    controls.maxPolarAngle = Math.PI * 0.86;
+
+    controls.target.copy(CAMERA_PRESETS.weir.target);
+
+    controls.addEventListener('start', () => {
+
+      state.cameraAnimating = false;
+
+    });
+
+
+
+    // Studio Lighting Rig
+
+    const hemiLight = new THREE.HemisphereLight(0xe2e8f0, 0x1e293b, 1.08);
+
+    hemiLight.position.set(0, 12, 0);
+
+    scene.add(hemiLight);
+
+
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.65);
+
+    keyLight.position.set(8.5, 13.0, 7.5);
+
+    keyLight.castShadow = true;
+
+    keyLight.shadow.mapSize.width = 2048;
+
+    keyLight.shadow.mapSize.height = 2048;
+
+    keyLight.shadow.camera.near = 1;
+
+    keyLight.shadow.camera.far = 36;
+
+    const dShadow = 8.5;
+
+    keyLight.shadow.camera.left = -dShadow;
+
+    keyLight.shadow.camera.right = dShadow;
+
+    keyLight.shadow.camera.top = dShadow;
+
+    keyLight.shadow.camera.bottom = -dShadow;
+
+    keyLight.shadow.bias = -0.0005;
+
+    scene.add(keyLight);
+
+
+
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.55);
+
+    fillLight.position.set(-8.0, 6.0, -6.0);
+
+    scene.add(fillLight);
+
+
+
+    const rimLight = new THREE.DirectionalLight(0x7dd3fc, 0.42);
+
+    rimLight.position.set(0.0, -4.5, 6.0);
+
+    scene.add(rimLight);
+
+
+
+    // Reference Datum Grid below lower chamber floor (y = -2.26)
+
+    const DATUM_Y = -2.26;
+
+    const gridHelper = new THREE.GridHelper(28, 56, 0x334155, 0x1e293b);
+
+    gridHelper.position.y = DATUM_Y;
+
+    gridHelper.material.transparent = true;
+
+    gridHelper.material.opacity = 0.34;
+
+    scene.add(gridHelper);
+
+
+
+    // =========================================================================
+
+    // 4. PROCEDURAL TEXTURES (MASONRY & LIVE SCADA SCREEN) + CAD MATERIALS
+
+    // =========================================================================
+
+    function createMasonryTexture() {
+
+      const c = document.createElement('canvas');
+
+      c.width = 512; c.height = 512;
+
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#334155';
+
+      ctx.fillRect(0, 0, 512, 512);
+
+      const rows = 9;
+
+      const rowH = 512 / rows;
+
+      for (let r = 0; r < rows; r++) {
+
+        let x = (r % 2) * -28;
+
+        while (x < 512) {
+
+          const w = 48 + ((r * 37 + Math.floor(x)) % 42);
+
+          const shade = 54 + ((r * 19 + Math.floor(x * 0.7)) % 28);
+
+          ctx.fillStyle = `rgb(${shade}, ${shade + 8}, ${shade + 18})`;
+
+          ctx.fillRect(x + 3, r * rowH + 3, w - 6, rowH - 6);
+
+          x += w;
+
+        }
+
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+
+      tex.wrapS = THREE.RepeatWrapping;
+
+      tex.wrapT = THREE.RepeatWrapping;
+
+      tex.repeat.set(3, 1);
+
+      return tex;
+
+    }
+
+
+
+    const scadaCanvas = document.createElement('canvas');
+
+    scadaCanvas.width = 256;
+
+    scadaCanvas.height = 192;
+
+    const scadaCtx = scadaCanvas.getContext('2d');
+
+    const scadaTex = new THREE.CanvasTexture(scadaCanvas);
+
+
+
+    function updateScadaScreenTexture() {
+
+      const ctx = scadaCtx;
+
+      ctx.fillStyle = '#090d16';
+
+      ctx.fillRect(0, 0, 256, 192);
+
+      ctx.fillStyle = '#0284c7';
+
+      ctx.fillRect(0, 0, 256, 26);
+
+      ctx.fillStyle = '#ffffff';
+
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+
+      ctx.fillText(`WTP SCADA · ${state.powerElec.toFixed(2)} kW`, 10, 17);
+
+
+
+      const boxes = [
+
+        { x: 12, y: 38, label: 'P_ELEC', val: `${state.powerElec.toFixed(2)} kW`, col: '#34d399' },
+
+        { x: 134, y: 38, label: 'ROTOR', val: `${state.rpm} RPM`, col: '#38bdf8' },
+
+        { x: 12, y: 112, label: 'HEAD ΔH', val: `${state.head.toFixed(2)} m`, col: '#fbbf24' },
+
+        { x: 134, y: 112, label: 'FLOW Q', val: `${(state.stopped ? 0 : state.flow).toFixed(2)} m³/s`, col: '#a78bfa' },
+
+      ];
+
+      boxes.forEach((b) => {
+
+        ctx.fillStyle = '#131c2e';
+
+        ctx.fillRect(b.x, b.y, 110, 62);
+
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+
+        ctx.strokeRect(b.x, b.y, 110, 62);
+
+        ctx.fillStyle = '#94a3b8';
+
+        ctx.font = '600 9.5px JetBrains Mono, monospace';
+
+        ctx.fillText(b.label, b.x + 8, b.y + 18);
+
+        ctx.fillStyle = b.col;
+
+        ctx.font = 'bold 14px JetBrains Mono, monospace';
+
+        ctx.fillText(b.val, b.x + 8, b.y + 44);
+
+      });
+
+      scadaTex.needsUpdate = true;
+
+    }
+
+
+
+    const materials = {
+
+      concrete: new THREE.MeshStandardMaterial({
+
+        color: 0x334155,
+
+        roughness: 0.82,
+
+        metalness: 0.12,
+
+        transparent: true,
+
+        opacity: 0.92,
+
+      }),
+
+      concreteDark: new THREE.MeshStandardMaterial({
+
+        color: 0x1e293b,
+
+        roughness: 0.88,
+
+        metalness: 0.14,
+
+        transparent: true,
+
+        opacity: 0.95,
+
+      }),
+
+      masonry: new THREE.MeshStandardMaterial({
+
+        map: createMasonryTexture(),
+
+        roughness: 0.88,
+
+        metalness: 0.08,
+
+        transparent: true,
+
+        opacity: 0.92,
+
+      }),
+
+      riverBank: new THREE.MeshStandardMaterial({
+
+        color: 0x182624,
+
+        roughness: 0.92,
+
+        metalness: 0.05,
+
+        transparent: true,
+
+        opacity: 0.88,
+
+      }),
+
+      riverWater: new THREE.MeshPhysicalMaterial({
+
+        color: 0x0284c7,
+
+        roughness: 0.18,
+
+        metalness: 0.05,
+
+        transparent: true,
+
+        opacity: 0.45,
+
+      }),
+
+      steelOuter: new THREE.MeshStandardMaterial({
+
+        color: 0xcbd5e1,
+
+        roughness: 0.30,
+
+        metalness: 0.70,
+
+        transparent: true,
+
+        opacity: 1.0,
+
+      }),
+
+      steelMachined: new THREE.MeshStandardMaterial({
+
+        color: 0x94a3b8,
+
+        roughness: 0.22,
+
+        metalness: 0.85,
+
+        transparent: true,
+
+        opacity: 1.0,
+
+      }),
+
+      steelDark: new THREE.MeshStandardMaterial({
+
+        color: 0x475569,
+
+        roughness: 0.38,
+
+        metalness: 0.72,
+
+        transparent: true,
+
+        opacity: 1.0,
+
+      }),
+
+      impellerBlade: new THREE.MeshStandardMaterial({
+
+        color: 0xe2e8f0,
+
+        roughness: 0.18,
+
+        metalness: 0.88,
+
+        side: THREE.DoubleSide,
+
+        transparent: true,
+
+        opacity: 1.0,
+
+      }),
+
+      gearBrass: new THREE.MeshStandardMaterial({
+
+        color: 0xf59e0b,
+
+        roughness: 0.24,
+
+        metalness: 0.88,
+
+      }),
+
+      sealBronze: new THREE.MeshStandardMaterial({
+
+        color: 0xd97706,
+
+        roughness: 0.26,
+
+        metalness: 0.86,
+
+      }),
+
+      copperCoil: new THREE.MeshStandardMaterial({
+
+        color: 0xea580c,
+
+        roughness: 0.26,
+
+        metalness: 0.88,
+
+      }),
+
+      cyanAccent: new THREE.MeshStandardMaterial({
+
+        color: 0x38bdf8,
+
+        roughness: 0.3,
+
+        metalness: 0.2,
+
+        emissive: 0x0284c7,
+
+        emissiveIntensity: 0.5,
+
+      }),
+
+      hoseRubber: new THREE.MeshStandardMaterial({
+
+        color: 0x1e293b,
+
+        roughness: 0.6,
+
+        metalness: 0.2,
+
+      }),
+
+      cabinetPaint: new THREE.MeshStandardMaterial({
+
+        color: 0xe2e8f0,
+
+        roughness: 0.36,
+
+        metalness: 0.28,
+
+      }),
+
+    };
+
+
+
+    const cadEdgeMaterial = new THREE.LineBasicMaterial({
+
+      color: 0x38bdf8,
+
+      transparent: true,
+
+      opacity: 0.34,
+
+    });
+
+
+
+    const concreteEdgeMaterial = new THREE.LineBasicMaterial({
+
+      color: 0x64748b,
+
+      transparent: true,
+
+      opacity: 0.42,
+
+    });
+
+
+
+    const interactiveMeshes = [];
+
+    const subsystemGroups = {};
+
+    const outerHousingMeshes = [];
+
+    const cutawayShellMeshes = [];
+
+    const riverEnvironmentMeshes = [];
+
+
+
+    function tagMesh(mesh, subsystemId, options = {}) {
+
+      mesh.userData.subsystemId = subsystemId;
+
+      if (!options.noCast) mesh.castShadow = true;
+
+      if (!options.noReceive) mesh.receiveShadow = true;
+
+      if (subsystemId) interactiveMeshes.push(mesh);
+
+
+
+      if (options.isOuterHousing) outerHousingMeshes.push(mesh);
+
+      if (options.isCutawayShell) cutawayShellMeshes.push(mesh);
+
+      if (options.isRiverEnv) riverEnvironmentMeshes.push(mesh);
+
+
+
+      if (options.addEdges !== false) {
+
+        const threshold = options.edgeThreshold ?? 28;
+
+        const edges = new THREE.EdgesGeometry(mesh.geometry, threshold);
+
+        const line = new THREE.LineSegments(
+
+          edges,
+
+          options.concreteEdge ? concreteEdgeMaterial : cadEdgeMaterial
+
+        );
+
+        line.raycast = () => {};
+
+        mesh.add(line);
+
+      }
+
+      return mesh;
+
+    }
+
+
+
+    // =========================================================================
+
+    // 5. INTEGRATED WTP RIVER CHANNEL, WEIR HEAD FALL & SCADA CONTROL CABINET
+
+    //    (Seamlessly connects upstream x < -3.20 into the tangential intake!)
+
+    // =========================================================================
+
+    const riverSiteGroup = new THREE.Group();
+
+    scene.add(riverSiteGroup);
+
+
+
+    const cabinetGroup = new THREE.Group();
+
+    subsystemGroups.cabinet = cabinetGroup;
+
+    cabinetGroup.position.set(-1.2, -2.26, 4.4);
+
+    cabinetGroup.rotation.y = 0.45;
+
+    scene.add(cabinetGroup);
+
+
+
+    function buildWTPRiverAndCabinet() {
+
+      // Upstream approach channel feeding the tangential intake at x = -3.20, z in [-2.75, -1.62]
+
+      const upstreamBed = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.30, 5.2), materials.concreteDark);
+
+      upstreamBed.position.set(-6.10, -0.35, -2.20);
+
+      tagMesh(upstreamBed, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(upstreamBed);
+
+
+
+      // Upstream masonry retaining walls (W = 6.30 m scaled approach)
+
+      const upWallBack = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.95, 0.28), materials.masonry);
+
+      upWallBack.position.set(-6.10, 0.65, -4.65);
+
+      tagMesh(upWallBack, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(upWallBack);
+
+
+
+      const upWallFront = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.95, 0.28), materials.masonry);
+
+      upWallFront.position.set(-6.10, 0.65, 0.25);
+
+      tagMesh(upWallFront, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(upWallFront);
+
+
+
+      // Transverse Weir Retaining Wall closing the front upstream channel at x = -3.35 (from z = -1.62 to z = 0.39)
+
+      const frontWeirWall = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.95, 2.01), materials.masonry);
+
+      frontWeirWall.position.set(-3.35, 0.65, -0.615);
+
+      tagMesh(frontWeirWall, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(frontWeirWall);
+
+
+
+      const frontWeirCrest = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.08, 2.01), materials.concrete);
+
+      frontWeirCrest.position.set(-3.35, 1.63, -0.615);
+
+      tagMesh(frontWeirCrest, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(frontWeirCrest);
+
+
+
+      // Upstream Headwater Volume (Water Surface at H = 0.74 m)
+
+      const upWater = new THREE.Mesh(new THREE.BoxGeometry(5.75, 0.94, 4.62), materials.riverWater);
+
+      upWater.position.set(-6.10, 0.27, -2.20);
+
+      tagMesh(upWater, null, { addEdges: false, noCast: true, isRiverEnv: true });
+
+      riverSiteGroup.add(upWater);
+
+
+
+      // Flanking Overflow Weir Wall (z = -4.51 to -2.75) beside the turbine intake
+
+      const weirWall = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.85, 1.76), materials.masonry);
+
+      weirWall.position.set(-3.35, 0.55, -3.63);
+
+      tagMesh(weirWall, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(weirWall);
+
+
+
+      const weirCrest = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.08, 1.76), materials.concrete);
+
+      weirCrest.position.set(-3.35, 0.72, -3.63);
+
+      tagMesh(weirCrest, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(weirCrest);
+
+
+
+      // Downstream River Tailrace Extension (+X beyond x = 2.95)
+
+      const downChannelFloor = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.16, 3.60), materials.concreteDark);
+
+      downChannelFloor.position.set(5.55, -2.18, -0.35);
+
+      tagMesh(downChannelFloor, null, { concreteEdge: true, isRiverEnv: true });
+
+      riverSiteGroup.add(downChannelFloor);
+
+
+
+      const downChannelWater = new THREE.Mesh(new THREE.BoxGeometry(5.15, 0.62, 3.45), materials.riverWater);
+
+      downChannelWater.position.set(5.55, -1.78, -0.35);
+
+      tagMesh(downChannelWater, null, { addEdges: false, noCast: true, isRiverEnv: true });
+
+      riverSiteGroup.add(downChannelWater);
+
+
+
+      // Right-Bank Concrete Service Pad & IP65 SCADA Control Cabinet (Subsystem 08)
+
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.16, 2.2), materials.concrete);
+
+      pad.position.set(0, 0.08, 0);
+
+      tagMesh(pad, 'cabinet', { concreteEdge: true });
+
+      cabinetGroup.add(pad);
+
+
+
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.86, 2.05, 0.58), materials.cabinetPaint);
+
+      body.position.set(0, 1.18, 0);
+
+      tagMesh(body, 'cabinet');
+
+      cabinetGroup.add(body);
+
+
+
+      const hood = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.07, 0.64), materials.steelDark);
+
+      hood.position.set(0, 2.24, 0);
+
+      tagMesh(hood, 'cabinet');
+
+      cabinetGroup.add(hood);
+
+
+
+      updateScadaScreenTexture();
+
+      const screen = new THREE.Mesh(
+
+        new THREE.PlaneGeometry(0.56, 0.42),
+
+        new THREE.MeshBasicMaterial({ map: scadaTex })
+
+      );
+
+      screen.position.set(0, 1.54, 0.293);
+
+      tagMesh(screen, 'cabinet', { addEdges: false });
+
+      cabinetGroup.add(screen);
+
+
+
+      [0x34d399, 0x38bdf8, 0xfbbf24].forEach((col, i) => {
+
+        const led = new THREE.Mesh(
+
+          new THREE.SphereGeometry(0.022, 10, 10),
+
+          new THREE.MeshBasicMaterial({ color: col })
+
+        );
+
+        led.position.set(-0.18 + i * 0.18, 1.90, 0.293);
+
+        cabinetGroup.add(led);
+
+      });
+
+
+
+      // Armored Submersible Cable Conduit connecting Turbine Skid to SCADA Cabinet
+
+      const trunkCurve = new THREE.CatmullRomCurve3([
+
+        new THREE.Vector3(-0.34, -1.58, 0.68),
+
+        new THREE.Vector3(-0.65, -2.02, 1.85),
+
+        new THREE.Vector3(-1.05, -2.14, 3.25),
+
+        new THREE.Vector3(-1.20, -2.05, 4.35),
+
+      ]);
+
+      const trunkMesh = new THREE.Mesh(
+
+        new THREE.TubeGeometry(trunkCurve, 32, 0.036, 10, false),
+
+        materials.hoseRubber
+
+      );
+
+      tagMesh(trunkMesh, 'support', { addEdges: false });
+
+      scene.add(trunkMesh);
+
+    }
+
+    buildWTPRiverAndCabinet();
+
+
+
+    // =========================================================================
+
+    // 6. SCULPTED LOGARITHMIC-SPIRAL CONCRETE VORTEX BASIN (SUBSYSTEM 01)
+
+    // =========================================================================
+
+    function spiralPt(theta, r) {
+
+      return new THREE.Vector2(Math.sin(theta) * r, -Math.cos(theta) * r);
+
+    }
+
+
+
+    function getSpiralOuterWettedR(theta) {
+
+      const t = THREE.MathUtils.clamp(theta / (Math.PI * 2), 0, 1);
+
+      return 2.75 - 1.13 * t;
+
+    }
+
+
+
+    const rootAssembly = new THREE.Group();
+
+    scene.add(rootAssembly);
+
+
+
+    const basinGroup = new THREE.Group();
+
+    subsystemGroups.basin = basinGroup;
+
+    rootAssembly.add(basinGroup);
+
+
+
+    function buildLogarithmicSpiralBasin() {
+
+      const WALL_THICK = 0.22;
+
+      const WALL_TOP_Y = 1.50;
+
+      const SLAB_BOT_Y = -0.22;
+
+      const WALL_H = WALL_TOP_Y - SLAB_BOT_Y;
+
+
+
+      // A. Sculpted Spiral Floor Slab
+
+      const floorShape = new THREE.Shape();
+
+      floorShape.moveTo(-3.20, -2.75 - WALL_THICK);
+
+      floorShape.lineTo(0.0, -2.75 - WALL_THICK);
+
+
+
+      const nFloorSteps = 96;
+
+      for (let i = 0; i <= nFloorSteps; i++) {
+
+        const theta = (i / nFloorSteps) * Math.PI * 1.78;
+
+        const rOut = getSpiralOuterWettedR(theta) + WALL_THICK;
+
+        const p = spiralPt(theta, rOut);
+
+        floorShape.lineTo(p.x, p.y);
+
+      }
+
+
+
+      floorShape.lineTo(-1.82, -1.62 + WALL_THICK);
+
+      floorShape.lineTo(-3.20, -1.62 + WALL_THICK);
+
+      floorShape.closePath();
+
+
+
+      const shroudCutout = new THREE.Path();
+
+      shroudCutout.absarc(0, 0, 1.48, 0, Math.PI * 2, true);
+
+      floorShape.holes.push(shroudCutout);
+
+
+
+      const floorGeo = new THREE.ExtrudeGeometry(floorShape, {
+
+        depth: 0.22,
+
+        bevelEnabled: false,
+
+        curveSegments: 48,
+
+      });
+
+      floorGeo.rotateX(Math.PI / 2);
+
+      const floorMesh = new THREE.Mesh(floorGeo, materials.concrete);
+
+      floorMesh.position.y = 0.0;
+
+      tagMesh(floorMesh, 'basin', { concreteEdge: true, isOuterHousing: true });
+
+      basinGroup.add(floorMesh);
+
+
+
+      // B. Continuous Logarithmic Spiral Wall & Cutwater Tongue
+
+      const wallShape = new THREE.Shape();
+
+      const segsSpiral = 120;
+
+      const segsTongue = 44;
+
+      const TONGUE_END_THETA = Math.PI * 2 + Math.PI * 0.62;
+
+
+
+      wallShape.moveTo(-3.20, -2.75 - WALL_THICK);
+
+      wallShape.lineTo(0.0, -2.75 - WALL_THICK);
+
+
+
+      for (let i = 1; i <= segsSpiral; i++) {
+
+        const theta = (i / segsSpiral) * Math.PI * 2;
+
+        const rOuterFace = getSpiralOuterWettedR(theta) + WALL_THICK;
+
+        const p = spiralPt(theta, rOuterFace);
+
+        wallShape.lineTo(p.x, p.y);
+
+      }
+
+
+
+      for (let i = 1; i <= segsTongue; i++) {
+
+        const u = i / segsTongue;
+
+        const theta = Math.PI * 2 + u * (TONGUE_END_THETA - Math.PI * 2);
+
+        const rTongueOut = THREE.MathUtils.lerp(1.62, 1.56, u);
+
+        const p = spiralPt(theta, rTongueOut);
+
+        wallShape.lineTo(p.x, p.y);
+
+      }
+
+
+
+      const noseCenterR = 1.52;
+
+      const noseRadius = 0.04;
+
+      const noseCenter = spiralPt(TONGUE_END_THETA, noseCenterR);
+
+      for (let k = 0; k <= 10; k++) {
+
+        const a = TONGUE_END_THETA + (k / 10) * Math.PI;
+
+        const nx = noseCenter.x + Math.sin(a) * noseRadius;
+
+        const nz = noseCenter.y - Math.cos(a) * noseRadius;
+
+        wallShape.lineTo(nx, nz);
+
+      }
+
+
+
+      for (let i = segsTongue; i >= 0; i--) {
+
+        const u = i / segsTongue;
+
+        const theta = Math.PI * 2 + u * (TONGUE_END_THETA - Math.PI * 2);
+
+        const p = spiralPt(theta, 1.48);
+
+        wallShape.lineTo(p.x, p.y);
+
+      }
+
+
+
+      wallShape.lineTo(-3.20, -1.48);
+
+      wallShape.lineTo(-3.20, -1.62);
+
+      wallShape.lineTo(0.0, -1.62);
+
+
+
+      for (let i = segsSpiral - 1; i >= 0; i--) {
+
+        const theta = (i / segsSpiral) * Math.PI * 2;
+
+        const rInnerWetted = getSpiralOuterWettedR(theta);
+
+        const p = spiralPt(theta, rInnerWetted);
+
+        wallShape.lineTo(p.x, p.y);
+
+      }
+
+
+
+      wallShape.lineTo(-3.20, -2.75);
+
+      wallShape.closePath();
+
+
+
+      const wallGeo = new THREE.ExtrudeGeometry(wallShape, {
+
+        depth: WALL_H,
+
+        bevelEnabled: true,
+
+        bevelThickness: 0.015,
+
+        bevelSize: 0.015,
+
+        bevelSegments: 2,
+
+        curveSegments: 48,
+
+      });
+
+      wallGeo.rotateX(Math.PI / 2);
+
+      const wallMesh = new THREE.Mesh(wallGeo, materials.concrete);
+
+      wallMesh.position.y = WALL_TOP_Y;
+
+      tagMesh(wallMesh, 'basin', { concreteEdge: true, isOuterHousing: true, isCutawayShell: true });
+
+      basinGroup.add(wallMesh);
+
+
+
+      // C. Open-Cutaway Lower Civil Chamber & Tailrace Channel
+
+      const lowerBaseShape = new THREE.Shape();
+
+      lowerBaseShape.moveTo(-2.15, -2.15);
+
+      lowerBaseShape.lineTo(2.95, -2.15);
+
+      lowerBaseShape.lineTo(2.95, 1.35);
+
+      lowerBaseShape.lineTo(1.15, 1.35);
+
+      lowerBaseShape.absarc(0, 0, 1.72, 0.35 * Math.PI, 1.15 * Math.PI, false);
+
+      lowerBaseShape.lineTo(-2.15, -0.75);
+
+      lowerBaseShape.closePath();
+
+
+
+      const lowerBaseGeo = new THREE.ExtrudeGeometry(lowerBaseShape, {
+
+        depth: 0.16,
+
+        bevelEnabled: false,
+
+      });
+
+      lowerBaseGeo.rotateX(Math.PI / 2);
+
+      const lowerBaseMesh = new THREE.Mesh(lowerBaseGeo, materials.concreteDark);
+
+      lowerBaseMesh.position.y = -2.10;
+
+      tagMesh(lowerBaseMesh, 'basin', { concreteEdge: true });
+
+      basinGroup.add(lowerBaseMesh);
+
+
+
+      const leftSupportWall = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.55, 1.88, 2.75),
+
+        materials.concrete
+
+      );
+
+      leftSupportWall.position.set(-1.85, -1.16, -0.75);
+
+      tagMesh(leftSupportWall, 'basin', { concreteEdge: true, isOuterHousing: true });
+
+      basinGroup.add(leftSupportWall);
+
+
+
+      const backTailraceWall = new THREE.Mesh(
+
+        new THREE.BoxGeometry(4.50, 1.88, 0.22),
+
+        materials.concrete
+
+      );
+
+      backTailraceWall.position.set(0.70, -1.16, -1.14);
+
+      tagMesh(backTailraceWall, 'basin', { concreteEdge: true, isOuterHousing: true });
+
+      basinGroup.add(backTailraceWall);
+
+
+
+      const frontTailraceCurb = new THREE.Mesh(
+
+        new THREE.BoxGeometry(1.80, 0.95, 0.22),
+
+        materials.concrete
+
+      );
+
+      frontTailraceCurb.position.set(2.05, -1.625, 1.14);
+
+      tagMesh(frontTailraceCurb, 'basin', { concreteEdge: true, isOuterHousing: true });
+
+      basinGroup.add(frontTailraceCurb);
+
+
+
+      // Central Concrete Plinth Pedestal
+
+      const plinthShape = new THREE.Shape();
+
+      plinthShape.moveTo(-1.12, -1.12);
+
+      plinthShape.lineTo(1.12, -1.12);
+
+      plinthShape.lineTo(1.12, 1.12);
+
+      plinthShape.lineTo(-1.12, 1.12);
+
+      plinthShape.closePath();
+
+
+
+      const plinthHole = new THREE.Path();
+
+      plinthHole.moveTo(-0.88, -0.88);
+
+      plinthHole.lineTo(-0.88, 0.88);
+
+      plinthHole.lineTo(0.88, 0.88);
+
+      plinthHole.lineTo(0.88, -0.88);
+
+      plinthHole.closePath();
+
+      plinthShape.holes.push(plinthHole);
+
+
+
+      const plinthGeo = new THREE.ExtrudeGeometry(plinthShape, {
+
+        depth: 1.10,
+
+        bevelEnabled: false,
+
+      });
+
+      plinthGeo.rotateX(Math.PI / 2);
+
+      const plinthMesh = new THREE.Mesh(plinthGeo, materials.concreteDark);
+
+      plinthMesh.position.y = -1.00;
+
+      tagMesh(plinthMesh, 'basin', { concreteEdge: true, isOuterHousing: true, isCutawayShell: true });
+
+      basinGroup.add(plinthMesh);
+
+
+
+      // Angled Fish-Friendly River Intake Trash-Rack Screen
+
+      const trashRackGroup = new THREE.Group();
+
+      trashRackGroup.position.set(-3.10, 0.72, -2.185);
+
+      trashRackGroup.rotation.z = -0.34;
+
+
+
+      const rackWidth = 1.12;
+
+      const rackLength = 1.56;
+
+      const topHeader = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.055, 0.055, rackWidth),
+
+        materials.steelMachined
+
+      );
+
+      topHeader.position.y = rackLength * 0.5;
+
+      tagMesh(topHeader, 'basin', { addEdges: false });
+
+      trashRackGroup.add(topHeader);
+
+
+
+      const botHeader = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.055, 0.055, rackWidth),
+
+        materials.steelMachined
+
+      );
+
+      botHeader.position.y = -rackLength * 0.5;
+
+      tagMesh(botHeader, 'basin', { addEdges: false });
+
+      trashRackGroup.add(botHeader);
+
+
+
+      const barCount = 15;
+
+      const barGeo = new THREE.BoxGeometry(0.036, rackLength, 0.012);
+
+      for (let b = 0; b < barCount; b++) {
+
+        const zBar = -rackWidth * 0.46 + (b / (barCount - 1)) * (rackWidth * 0.92);
+
+        const bar = new THREE.Mesh(barGeo, materials.steelOuter);
+
+        bar.position.set(0, 0, zBar);
+
+        tagMesh(bar, 'basin', { addEdges: false });
+
+        trashRackGroup.add(bar);
+
+      }
+
+      basinGroup.add(trashRackGroup);
+
+    }
+
+    buildLogarithmicSpiralBasin();
+
+
+
+    // =========================================================================
+
+    // 6B. 3D RIVER HEAD GAUGE ("ΔH = 0.74 m") BETWEEN HWL AND TWL
+
+    // =========================================================================
+
+    const headGaugeGroup = new THREE.Group();
+
+    scene.add(headGaugeGroup);
+
+
+
+    const TAILWATER_Y = -1.48;
+
+    const GAUGE_X = -2.55;
+
+    const GAUGE_Z = -1.52;
+
+    const headGaugeMidWorld = new THREE.Vector3(GAUGE_X - 0.16, -0.37, GAUGE_Z + 0.04);
+
+
+
+    let gaugeHwlArm = null;
+
+    let gaugeArrowShaft = null;
+
+    let gaugeTopCone = null;
+
+
+
+    function buildRiverHeadGauge() {
+
+      const staffMat = new THREE.MeshStandardMaterial({
+
+        color: 0xe2e8f0,
+
+        roughness: 0.3,
+
+        metalness: 0.7,
+
+      });
+
+      const cyanGlowMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+      const emeraldGlowMat = new THREE.MeshBasicMaterial({ color: 0x34d399 });
+
+
+
+      const staffPost = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.036, 2.95, 0.036),
+
+        staffMat
+
+      );
+
+      staffPost.position.set(GAUGE_X, -0.15, GAUGE_Z);
+
+      headGaugeGroup.add(staffPost);
+
+
+
+      const tickGeo = new THREE.BoxGeometry(0.052, 0.008, 0.044);
+
+      for (let t = 0; t <= 24; t++) {
+
+        const tick = new THREE.Mesh(tickGeo, cyanGlowMat);
+
+        tick.position.set(GAUGE_X, TAILWATER_Y + t * 0.11, GAUGE_Z);
+
+        headGaugeGroup.add(tick);
+
+      }
+
+
+
+      const twlArm = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.42, 0.022, 0.022),
+
+        emeraldGlowMat
+
+      );
+
+      twlArm.position.set(GAUGE_X - 0.16, TAILWATER_Y, GAUGE_Z);
+
+      headGaugeGroup.add(twlArm);
+
+
+
+      gaugeHwlArm = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.42, 0.024, 0.024),
+
+        cyanGlowMat
+
+      );
+
+      gaugeHwlArm.position.set(GAUGE_X - 0.16, 0.74, GAUGE_Z);
+
+      headGaugeGroup.add(gaugeHwlArm);
+
+
+
+      gaugeArrowShaft = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.009, 0.009, 1.0, 10),
+
+        cyanGlowMat
+
+      );
+
+      headGaugeGroup.add(gaugeArrowShaft);
+
+
+
+      gaugeTopCone = new THREE.Mesh(
+
+        new THREE.ConeGeometry(0.026, 0.075, 12),
+
+        cyanGlowMat
+
+      );
+
+      headGaugeGroup.add(gaugeTopCone);
+
+
+
+      const botCone = new THREE.Mesh(
+
+        new THREE.ConeGeometry(0.026, 0.075, 12),
+
+        cyanGlowMat
+
+      );
+
+      botCone.rotation.x = Math.PI;
+
+      botCone.position.set(GAUGE_X - 0.28, TAILWATER_Y + 0.038, GAUGE_Z);
+
+      headGaugeGroup.add(botCone);
+
+    }
+
+    buildRiverHeadGauge();
+
+
+
+    function syncHeadGaugeGeometry() {
+
+      const yHwl = getVortexSurfaceY(-2.55, -2.18);
+
+      const yTwl = TAILWATER_Y;
+
+      const span = Math.max(0.15, yHwl - yTwl);
+
+      const yMid = (yHwl + yTwl) * 0.5;
+
+
+
+      if (gaugeHwlArm) gaugeHwlArm.position.y = yHwl;
+
+      if (gaugeArrowShaft) {
+
+        gaugeArrowShaft.scale.y = span;
+
+        gaugeArrowShaft.position.set(GAUGE_X - 0.28, yMid, GAUGE_Z);
+
+      }
+
+      if (gaugeTopCone) {
+
+        gaugeTopCone.position.set(GAUGE_X - 0.28, yHwl - 0.038, GAUGE_Z);
+
+      }
+
+
+
+      headGaugeMidWorld.set(GAUGE_X - 0.30, yMid, GAUGE_Z + 0.05);
+
+      const badgeEl = document.getElementById('head-gauge-badge');
+
+      if (badgeEl) {
+
+        badgeEl.textContent = `ΔH = ${state.head.toFixed(2)} m`;
+
+      }
+
+    }
+
+
+
+    // =========================================================================
+
+    // 7. COMPLETE TURBINE CORE ARCHITECTURE (SHROUD, IMPELLER, GEARBOX, SEAL, GEN, SUPPORT)
+
+    // =========================================================================
+
+    const coreUnitGroup = new THREE.Group();
+
+    rootAssembly.add(coreUnitGroup);
+
+
+
+    // SUBSYSTEM 02: SHROUD
+
+    const shroudGroup = new THREE.Group();
+
+    subsystemGroups.shroud = shroudGroup;
+
+    coreUnitGroup.add(shroudGroup);
+
+
+
+    function buildShroud() {
+
+      const createFlangeArc = (startAngle, arcLength, isCutaway) => {
+
+        const shape = new THREE.Shape();
+
+        shape.absarc(0, 0, 1.52, startAngle, startAngle + arcLength, false);
+
+        shape.absarc(0, 0, 1.16, startAngle + arcLength, startAngle, true);
+
+        shape.closePath();
+
+
+
+        const geo = new THREE.ExtrudeGeometry(shape, {
+
+          depth: 0.055,
+
+          bevelEnabled: true,
+
+          bevelThickness: 0.006,
+
+          bevelSize: 0.006,
+
+          bevelSegments: 2,
+
+          curveSegments: 48,
+
+        });
+
+        geo.rotateX(Math.PI / 2);
+
+        const mesh = new THREE.Mesh(geo, materials.steelOuter);
+
+        mesh.position.y = 0.055;
+
+        tagMesh(mesh, 'shroud', { isOuterHousing: true, isCutawayShell: isCutaway });
+
+        shroudGroup.add(mesh);
+
+      };
+
+
+
+      createFlangeArc(Math.PI * 0.88, Math.PI * 1.24, false);
+
+      createFlangeArc(Math.PI * 0.12, Math.PI * 0.76, true);
+
+
+
+      const boltGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.032, 6);
+
+      for (let i = 0; i < 16; i++) {
+
+        const ang = (i / 16) * Math.PI * 2;
+
+        const bolt = new THREE.Mesh(boltGeo, materials.steelMachined);
+
+        bolt.position.set(Math.cos(ang) * 1.35, 0.072, Math.sin(ang) * 1.35);
+
+        const isFront = Math.sin(ang) > 0.35;
+
+        tagMesh(bolt, 'shroud', { addEdges: false, isCutawayShell: isFront });
+
+        shroudGroup.add(bolt);
+
+      }
+
+
+
+      const bellPoints = [
+
+        new THREE.Vector2(1.20, 0.02),
+
+        new THREE.Vector2(1.16, 0.01),
+
+        new THREE.Vector2(1.10, -0.09),
+
+        new THREE.Vector2(1.08, -0.24),
+
+        new THREE.Vector2(1.08, -0.42),
+
+        new THREE.Vector2(1.25, -0.42),
+
+        new THREE.Vector2(1.25, -0.38),
+
+        new THREE.Vector2(1.13, -0.38),
+
+        new THREE.Vector2(1.13, -0.10),
+
+        new THREE.Vector2(1.20, 0.00),
+
+      ];
+
+
+
+      const backThroat = new THREE.Mesh(
+
+        new THREE.LatheGeometry(bellPoints, 48, Math.PI * 0.62, Math.PI * 1.24),
+
+        materials.steelOuter
+
+      );
+
+      tagMesh(backThroat, 'shroud', { isOuterHousing: true });
+
+      shroudGroup.add(backThroat);
+
+
+
+      const frontThroat = new THREE.Mesh(
+
+        new THREE.LatheGeometry(bellPoints, 32, -Math.PI * 0.14, Math.PI * 0.76),
+
+        materials.steelOuter
+
+      );
+
+      tagMesh(frontThroat, 'shroud', { isOuterHousing: true, isCutawayShell: true });
+
+      shroudGroup.add(frontThroat);
+
+
+
+      const ribShape = new THREE.Shape();
+
+      ribShape.moveTo(1.12, -0.01);
+
+      ribShape.lineTo(1.46, -0.01);
+
+      ribShape.lineTo(1.24, -0.38);
+
+      ribShape.lineTo(1.12, -0.38);
+
+      ribShape.closePath();
+
+
+
+      const ribGeo = new THREE.ExtrudeGeometry(ribShape, { depth: 0.024, bevelEnabled: false });
+
+      ribGeo.translate(0, 0, -0.012);
+
+
+
+      for (let i = 0; i < 12; i++) {
+
+        const ang = (i / 12) * Math.PI * 2;
+
+        const rib = new THREE.Mesh(ribGeo, materials.steelOuter);
+
+        rib.rotation.y = -ang;
+
+        const isFront = Math.sin(ang) > 0.35;
+
+        tagMesh(rib, 'shroud', { isOuterHousing: true, isCutawayShell: isFront });
+
+        shroudGroup.add(rib);
+
+      }
+
+    }
+
+    buildShroud();
+
+
+
+    // SUBSYSTEM 03: IMPELLER
+
+    const impellerGroup = new THREE.Group();
+
+    subsystemGroups.impeller = impellerGroup;
+
+    coreUnitGroup.add(impellerGroup);
+
+
+
+    const impellerCapGroup = new THREE.Group();
+
+    const impellerRotorGroup = new THREE.Group();
+
+    impellerGroup.add(impellerCapGroup);
+
+    impellerGroup.add(impellerRotorGroup);
+
+
+
+    function buildImpeller() {
+
+      const createDrumShell = (phiStart, phiLength, isCutaway) => {
+
+        const pts = [
+
+          new THREE.Vector2(0.535, 0.02),
+
+          new THREE.Vector2(0.570, 0.02),
+
+          new THREE.Vector2(0.570, 0.98),
+
+          new THREE.Vector2(0.548, 1.03),
+
+          new THREE.Vector2(0.470, 1.13),
+
+          new THREE.Vector2(0.290, 1.21),
+
+          new THREE.Vector2(0.0, 1.24),
+
+          new THREE.Vector2(0.0, 1.20),
+
+          new THREE.Vector2(0.275, 1.17),
+
+          new THREE.Vector2(0.445, 1.09),
+
+          new THREE.Vector2(0.535, 0.96),
+
+        ];
+
+        const geo = new THREE.LatheGeometry(pts, 40, phiStart, phiLength);
+
+        const mesh = new THREE.Mesh(geo, materials.steelOuter);
+
+        tagMesh(mesh, 'impeller', { isOuterHousing: true, isCutawayShell: isCutaway });
+
+        impellerCapGroup.add(mesh);
+
+      };
+
+
+
+      createDrumShell(Math.PI * 0.62, Math.PI * 1.26, false);
+
+      createDrumShell(-Math.PI * 0.12, Math.PI * 0.74, true);
+
+
+
+      const collarGeo = new THREE.TorusGeometry(0.572, 0.012, 8, 56);
+
+      collarGeo.rotateX(Math.PI / 2);
+
+      const collar = new THREE.Mesh(collarGeo, materials.steelMachined);
+
+      collar.position.y = 0.99;
+
+      tagMesh(collar, 'impeller', { addEdges: false, isOuterHousing: true });
+
+      impellerCapGroup.add(collar);
+
+
+
+      const slotGeo = new THREE.CylinderGeometry(0.020, 0.020, 0.24, 12);
+
+      const slotAngles = [0.16, Math.PI - 0.16, Math.PI + 0.45, -0.45];
+
+      slotAngles.forEach((ang) => {
+
+        const slot = new THREE.Mesh(slotGeo, materials.cyanAccent);
+
+        slot.position.set(Math.cos(ang) * 0.568, 0.54, Math.sin(ang) * 0.568);
+
+        const isFront = Math.sin(ang) > 0.35;
+
+        tagMesh(slot, 'impeller', { addEdges: false, isCutawayShell: isFront });
+
+        impellerCapGroup.add(slot);
+
+      });
+
+
+
+      const hubMesh = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.555, 0.525, 0.44, 40),
+
+        materials.steelMachined
+
+      );
+
+      hubMesh.position.y = -0.20;
+
+      tagMesh(hubMesh, 'impeller');
+
+      impellerRotorGroup.add(hubMesh);
+
+
+
+      function createHelicalBladeGeometry() {
+
+        const radialSegs = 18;
+
+        const chordSegs = 14;
+
+        const rInner = 0.545;
+
+        const rOuter = 1.045;
+
+
+
+        const positions = [];
+
+        const uvs = [];
+
+        const indices = [];
+
+
+
+        for (let side = 0; side < 2; side++) {
+
+          const sign = side === 0 ? 1 : -1;
+
+          for (let i = 0; i <= radialSegs; i++) {
+
+            const u = i / radialSegs;
+
+            const r = THREE.MathUtils.lerp(rInner, rOuter, u);
+
+            const chordAngle = THREE.MathUtils.lerp(0.68, 1.08, Math.sin(u * Math.PI * 0.72));
+
+            const sweepCenter = -0.35 + u * 0.92;
+
+            const pitch = THREE.MathUtils.lerp(0.92, 0.38, u);
+
+            const yCenter = THREE.MathUtils.lerp(-0.20, -0.25, u);
+
+
+
+            for (let j = 0; j <= chordSegs; j++) {
+
+              const v = j / chordSegs;
+
+              const localChord = (v - 0.5) * chordAngle;
+
+              const theta = sweepCenter + localChord;
+
+
+
+              const foilProfile = Math.sin(v * Math.PI);
+
+              const maxThick = THREE.MathUtils.lerp(0.036, 0.014, u);
+
+              const normalOffset = sign * foilProfile * maxThick * 0.5;
+
+
+
+              const spanOffset = localChord * r * 0.52;
+
+              const y = yCenter - Math.sin(pitch) * spanOffset + Math.cos(pitch) * normalOffset;
+
+              const thetaAdjusted = theta + (Math.sin(pitch) * normalOffset) / r;
+
+
+
+              positions.push(Math.cos(thetaAdjusted) * r, y, Math.sin(thetaAdjusted) * r);
+
+              uvs.push(u, v);
+
+            }
+
+          }
+
+        }
+
+
+
+        const stride = chordSegs + 1;
+
+        const vertCountPerSide = (radialSegs + 1) * stride;
+
+
+
+        for (let i = 0; i < radialSegs; i++) {
+
+          for (let j = 0; j < chordSegs; j++) {
+
+            const a = i * stride + j;
+
+            const b = (i + 1) * stride + j;
+
+            const c = (i + 1) * stride + (j + 1);
+
+            const d = i * stride + (j + 1);
+
+            indices.push(a, b, d, b, c, d);
+
+          }
+
+        }
+
+
+
+        for (let i = 0; i < radialSegs; i++) {
+
+          for (let j = 0; j < chordSegs; j++) {
+
+            const a = vertCountPerSide + i * stride + j;
+
+            const b = vertCountPerSide + (i + 1) * stride + j;
+
+            const c = vertCountPerSide + (i + 1) * stride + (j + 1);
+
+            const d = vertCountPerSide + i * stride + (j + 1);
+
+            indices.push(a, d, b, b, d, c);
+
+          }
+
+        }
+
+
+
+        for (let j = 0; j < chordSegs; j++) {
+
+          const topA = radialSegs * stride + j;
+
+          const topB = radialSegs * stride + (j + 1);
+
+          const botA = vertCountPerSide + radialSegs * stride + j;
+
+          const botB = vertCountPerSide + radialSegs * stride + (j + 1);
+
+          indices.push(topA, botA, topB, topB, botA, botB);
+
+        }
+
+
+
+        const geo = new THREE.BufferGeometry();
+
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+
+        geo.setIndex(indices);
+
+        geo.computeVertexNormals();
+
+        return geo;
+
+      }
+
+
+
+      const bladeGeo = createHelicalBladeGeometry();
+
+      for (let b = 0; b < 5; b++) {
+
+        const blade = new THREE.Mesh(bladeGeo, materials.impellerBlade);
+
+        blade.rotation.y = (b / 5) * Math.PI * 2;
+
+        tagMesh(blade, 'impeller', { edgeThreshold: 38 });
+
+        impellerRotorGroup.add(blade);
+
+      }
+
+    }
+
+    buildImpeller();
+
+
+
+    // SUBSYSTEM 04: PLANETARY GEARBOX
+
+    const gearboxGroup = new THREE.Group();
+
+    subsystemGroups.gearbox = gearboxGroup;
+
+    coreUnitGroup.add(gearboxGroup);
+
+
+
+    const planetaryCarrier = new THREE.Group();
+
+    const sunGearMeshGroup = new THREE.Group();
+
+    const planetGears = [];
+
+
+
+    function buildGearbox() {
+
+      const topCap = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.19, 0.24, 0.20, 28),
+
+        materials.steelMachined
+
+      );
+
+      topCap.position.y = 0.92;
+
+      tagMesh(topCap, 'gearbox');
+
+      gearboxGroup.add(topCap);
+
+
+
+      const stepRing = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.29, 0.29, 0.055, 28),
+
+        materials.steelDark
+
+      );
+
+      stepRing.position.y = 0.80;
+
+      tagMesh(stepRing, 'gearbox');
+
+      gearboxGroup.add(stepRing);
+
+
+
+      const couplingFlange = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.42, 0.42, 0.07, 36),
+
+        materials.steelMachined
+
+      );
+
+      couplingFlange.position.y = 0.70;
+
+      tagMesh(couplingFlange, 'gearbox');
+
+      gearboxGroup.add(couplingFlange);
+
+
+
+      const studGeo = new THREE.CylinderGeometry(0.017, 0.017, 0.105, 6);
+
+      for (let i = 0; i < 20; i++) {
+
+        const a = (i / 20) * Math.PI * 2;
+
+        const stud = new THREE.Mesh(studGeo, materials.steelDark);
+
+        stud.position.set(Math.cos(a) * 0.375, 0.71, Math.sin(a) * 0.375);
+
+        tagMesh(stud, 'gearbox', { addEdges: false });
+
+        gearboxGroup.add(stud);
+
+      }
+
+
+
+      const ringGearHousing = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.40, 0.40, 0.24, 32, 1, true, Math.PI * 0.65, Math.PI * 1.25),
+
+        materials.steelDark
+
+      );
+
+      ringGearHousing.position.y = 0.52;
+
+      tagMesh(ringGearHousing, 'gearbox');
+
+      gearboxGroup.add(ringGearHousing);
+
+
+
+      function createGearMesh(radius, thickness, teeth, mat) {
+
+        const shape = new THREE.Shape();
+
+        const innerR = radius * 0.86;
+
+        const outerR = radius * 1.04;
+
+        for (let i = 0; i < teeth; i++) {
+
+          const a0 = (i / teeth) * Math.PI * 2;
+
+          const a1 = ((i + 0.25) / teeth) * Math.PI * 2;
+
+          const a2 = ((i + 0.5) / teeth) * Math.PI * 2;
+
+          const a3 = ((i + 0.75) / teeth) * Math.PI * 2;
+
+          if (i === 0) shape.moveTo(Math.cos(a0) * innerR, Math.sin(a0) * innerR);
+
+          else shape.lineTo(Math.cos(a0) * innerR, Math.sin(a0) * innerR);
+
+          shape.lineTo(Math.cos(a1) * outerR, Math.sin(a1) * outerR);
+
+          shape.lineTo(Math.cos(a2) * outerR, Math.sin(a2) * outerR);
+
+          shape.lineTo(Math.cos(a3) * innerR, Math.sin(a3) * innerR);
+
+        }
+
+        shape.closePath();
+
+
+
+        const bore = new THREE.Path();
+
+        bore.absarc(0, 0, radius * 0.32, 0, Math.PI * 2, true);
+
+        shape.holes.push(bore);
+
+
+
+        const geo = new THREE.ExtrudeGeometry(shape, { depth: thickness, bevelEnabled: false });
+
+        geo.rotateX(Math.PI / 2);
+
+        const mesh = new THREE.Mesh(geo, mat);
+
+        mesh.position.y = thickness * 0.5;
+
+        tagMesh(mesh, 'gearbox', { edgeThreshold: 35 });
+
+        return mesh;
+
+      }
+
+
+
+      const sunGear = createGearMesh(0.118, 0.135, 14, materials.gearBrass);
+
+      sunGearMeshGroup.position.y = 0.52;
+
+      sunGearMeshGroup.add(sunGear);
+
+      gearboxGroup.add(sunGearMeshGroup);
+
+
+
+      planetaryCarrier.position.y = 0.52;
+
+      gearboxGroup.add(planetaryCarrier);
+
+
+
+      for (let p = 0; p < 3; p++) {
+
+        const ang = (p / 3) * Math.PI * 2;
+
+        const pPivot = new THREE.Group();
+
+        pPivot.position.set(Math.cos(ang) * 0.238, 0, Math.sin(ang) * 0.238);
+
+
+
+        const pGear = createGearMesh(0.112, 0.13, 13, materials.steelMachined);
+
+        pPivot.add(pGear);
+
+
+
+        const pinShaft = new THREE.Mesh(
+
+          new THREE.CylinderGeometry(0.032, 0.032, 0.19, 14),
+
+          materials.steelDark
+
+        );
+
+        pPivot.add(pinShaft);
+
+
+
+        planetaryCarrier.add(pPivot);
+
+        planetGears.push(pGear);
+
+      }
+
+
+
+      const lowerFlange = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.40, 0.40, 0.055, 32),
+
+        materials.steelMachined
+
+      );
+
+      lowerFlange.position.y = 0.37;
+
+      tagMesh(lowerFlange, 'gearbox');
+
+      gearboxGroup.add(lowerFlange);
+
+
+
+      const taperedCone = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.30, 0.395, 0.34, 32),
+
+        materials.steelOuter
+
+      );
+
+      taperedCone.position.y = 0.17;
+
+      tagMesh(taperedCone, 'gearbox');
+
+      gearboxGroup.add(taperedCone);
+
+    }
+
+    buildGearbox();
+
+
+
+    // SUBSYSTEM 05: DUAL-CHAMBER SEALING SYSTEM (Integrated from Code 2)
+
+    const sealingGroup = new THREE.Group();
+
+    subsystemGroups.sealing = sealingGroup;
+
+    coreUnitGroup.add(sealingGroup);
+
+
+
+    function buildSealingSystem() {
+
+      const sealCollar = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.32, 0.32, 0.12, 32),
+
+        materials.sealBronze
+
+      );
+
+      sealCollar.position.y = -0.02;
+
+      tagMesh(sealCollar, 'sealing');
+
+      sealingGroup.add(sealCollar);
+
+
+
+      const sealFlange = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.38, 0.38, 0.035, 32),
+
+        materials.steelMachined
+
+      );
+
+      sealFlange.position.y = 0.04;
+
+      tagMesh(sealFlange, 'sealing');
+
+      sealingGroup.add(sealFlange);
+
+    }
+
+    buildSealingSystem();
+
+
+
+    // SUBSYSTEM 06: GENERATOR
+
+    const generatorGroup = new THREE.Group();
+
+    subsystemGroups.generator = generatorGroup;
+
+    coreUnitGroup.add(generatorGroup);
+
+
+
+    const generatorRotor = new THREE.Group();
+
+    generatorGroup.add(generatorRotor);
+
+
+
+    function buildGenerator() {
+
+      const upperBell = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.40, 0.415, 0.12, 32),
+
+        materials.steelMachined
+
+      );
+
+      upperBell.position.y = -0.06;
+
+      tagMesh(upperBell, 'generator');
+
+      generatorGroup.add(upperBell);
+
+
+
+      const lowerBell = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.415, 0.30, 0.20, 32),
+
+        materials.steelMachined
+
+      );
+
+      lowerBell.position.y = -1.26;
+
+      tagMesh(lowerBell, 'generator');
+
+      generatorGroup.add(lowerBell);
+
+
+
+      const createStatorShell = (phiStart, phiLength, isCutaway) => {
+
+        const pts = [
+
+          new THREE.Vector2(0.355, -1.16),
+
+          new THREE.Vector2(0.415, -1.16),
+
+          new THREE.Vector2(0.415, -0.12),
+
+          new THREE.Vector2(0.355, -0.12),
+
+        ];
+
+        const geo = new THREE.LatheGeometry(pts, 36, phiStart, phiLength);
+
+        const mesh = new THREE.Mesh(geo, materials.steelOuter);
+
+        tagMesh(mesh, 'generator', { isOuterHousing: true, isCutawayShell: isCutaway });
+
+        generatorGroup.add(mesh);
+
+      };
+
+
+
+      createStatorShell(Math.PI * 0.62, Math.PI * 1.26, false);
+
+      createStatorShell(-Math.PI * 0.12, Math.PI * 0.74, true);
+
+
+
+      const finGeo = new THREE.BoxGeometry(0.022, 0.98, 0.032);
+
+      for (let f = 0; f < 16; f++) {
+
+        const a = (f / 16) * Math.PI * 2;
+
+        const fin = new THREE.Mesh(finGeo, materials.steelMachined);
+
+        fin.position.set(Math.cos(a) * 0.422, -0.64, Math.sin(a) * 0.422);
+
+        fin.rotation.y = -a;
+
+        const isFront = Math.sin(a) > 0.35;
+
+        tagMesh(fin, 'generator', { addEdges: false, isOuterHousing: true, isCutawayShell: isFront });
+
+        generatorGroup.add(fin);
+
+      }
+
+
+
+      const coilGeo = new THREE.BoxGeometry(0.064, 0.82, 0.052);
+
+      for (let c = 0; c < 18; c++) {
+
+        const a = (c / 18) * Math.PI * 2;
+
+        const coil = new THREE.Mesh(coilGeo, materials.copperCoil);
+
+        coil.position.set(Math.cos(a) * 0.32, -0.64, Math.sin(a) * 0.32);
+
+        coil.rotation.y = -a;
+
+        tagMesh(coil, 'generator', { addEdges: false });
+
+        generatorGroup.add(coil);
+
+      }
+
+
+
+      const pmRotor = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.24, 0.24, 0.84, 24),
+
+        materials.steelDark
+
+      );
+
+      pmRotor.position.y = -0.64;
+
+      tagMesh(pmRotor, 'generator');
+
+      generatorRotor.add(pmRotor);
+
+
+
+      const mainShaft = new THREE.Mesh(
+
+        new THREE.CylinderGeometry(0.072, 0.072, 1.42, 18),
+
+        materials.steelMachined
+
+      );
+
+      mainShaft.position.y = -0.58;
+
+      tagMesh(mainShaft, 'generator');
+
+      generatorRotor.add(mainShaft);
+
+
+
+      [-0.105, 0.105].forEach((gx) => {
+
+        const gland = new THREE.Mesh(
+
+          new THREE.CylinderGeometry(0.038, 0.046, 0.14, 16),
+
+          materials.steelMachined
+
+        );
+
+        gland.position.set(gx, -1.40, 0.03);
+
+        tagMesh(gland, 'generator');
+
+        generatorGroup.add(gland);
+
+
+
+        const hexNut = new THREE.Mesh(
+
+          new THREE.CylinderGeometry(0.052, 0.052, 0.035, 6),
+
+          materials.steelDark
+
+        );
+
+        hexNut.position.set(gx, -1.36, 0.03);
+
+        tagMesh(hexNut, 'generator', { addEdges: false });
+
+        generatorGroup.add(hexNut);
+
+      });
+
+    }
+
+    buildGenerator();
+
+
+
+    // SUBSYSTEM 07: SUPPORT FRAME & UMBILICALS
+
+    const supportGroup = new THREE.Group();
+
+    subsystemGroups.support = supportGroup;
+
+    coreUnitGroup.add(supportGroup);
+
+
+
+    function buildSupportStructure() {
+
+      const rTop = 0.60;
+
+      const rBot = 0.82;
+
+      const yTop = -0.40;
+
+      const yBot = -0.96;
+
+
+
+      for (let side = 0; side < 8; side++) {
+
+        const a0 = (side / 8) * Math.PI * 2 + Math.PI / 8;
+
+        const a1 = ((side + 1) / 8) * Math.PI * 2 + Math.PI / 8;
+
+        const aMid = (a0 + a1) * 0.5;
+
+
+
+        const wTop = 2 * rTop * Math.sin(Math.PI / 8);
+
+        const wBot = 2 * rBot * Math.sin(Math.PI / 8);
+
+        const slantH = Math.hypot(yTop - yBot, rBot - rTop);
+
+        const tiltAngle = Math.atan2(rBot - rTop, yTop - yBot);
+
+
+
+        const plateShape = new THREE.Shape();
+
+        plateShape.moveTo(-wBot * 0.5, 0);
+
+        plateShape.lineTo(wBot * 0.5, 0);
+
+        plateShape.lineTo(wTop * 0.5, slantH);
+
+        plateShape.lineTo(-wTop * 0.5, slantH);
+
+        plateShape.closePath();
+
+
+
+        const plateGeo = new THREE.ExtrudeGeometry(plateShape, { depth: 0.026, bevelEnabled: false });
+
+        const plate = new THREE.Mesh(plateGeo, materials.steelOuter);
+
+        const rMid = (rTop + rBot) * 0.5 * Math.cos(Math.PI / 8);
+
+        plate.position.set(
+
+          Math.cos(aMid) * rBot * Math.cos(Math.PI / 8),
+
+          yBot,
+
+          Math.sin(aMid) * rBot * Math.cos(Math.PI / 8)
+
+        );
+
+        plate.rotation.y = -aMid + Math.PI / 2;
+
+        plate.rotateX(-tiltAngle);
+
+
+
+        const isFront = Math.sin(aMid) > 0.35;
+
+        tagMesh(plate, 'support', { isOuterHousing: true, isCutawayShell: isFront });
+
+        supportGroup.add(plate);
+
+
+
+        if (side === 1 || side === 5) {
+
+          const hatch = new THREE.Mesh(
+
+            new THREE.BoxGeometry(wBot * 0.62, 0.22, 0.036),
+
+            materials.steelMachined
+
+          );
+
+          hatch.position.set(
+
+            Math.cos(aMid) * (rMid + 0.018),
+
+            (yTop + yBot) * 0.5 - 0.08,
+
+            Math.sin(aMid) * (rMid + 0.018)
+
+          );
+
+          hatch.rotation.y = -aMid + Math.PI / 2;
+
+          hatch.rotateX(-tiltAngle);
+
+          tagMesh(hatch, 'support', { isOuterHousing: true, isCutawayShell: isFront });
+
+          supportGroup.add(hatch);
+
+        }
+
+      }
+
+
+
+      const manifoldBlock = new THREE.Mesh(
+
+        new THREE.BoxGeometry(0.24, 0.16, 0.20),
+
+        materials.steelMachined
+
+      );
+
+      manifoldBlock.position.set(0.72, -0.84, 0.26);
+
+      manifoldBlock.rotation.y = -0.35;
+
+      tagMesh(manifoldBlock, 'support');
+
+      supportGroup.add(manifoldBlock);
+
+
+
+      [-0.052, 0.052].forEach((zOff) => {
+
+        const pipe = new THREE.Mesh(
+
+          new THREE.CylinderGeometry(0.022, 0.022, 0.48, 16),
+
+          materials.steelMachined
+
+        );
+
+        pipe.position.set(0.94, -0.87, 0.34 + zOff);
+
+        pipe.rotation.z = -Math.PI * 0.42;
+
+        pipe.rotation.y = -0.35;
+
+        tagMesh(pipe, 'support');
+
+        supportGroup.add(pipe);
+
+      });
+
+
+
+      const sqPlateShape = new THREE.Shape();
+
+      const halfW = 0.98;
+
+      const rCorner = 0.08;
+
+      sqPlateShape.moveTo(-halfW + rCorner, -halfW);
+
+      sqPlateShape.lineTo(halfW - rCorner, -halfW);
+
+      sqPlateShape.quadraticCurveTo(halfW, -halfW, halfW, -halfW + rCorner);
+
+      sqPlateShape.lineTo(halfW, halfW - rCorner);
+
+      sqPlateShape.quadraticCurveTo(halfW, halfW, halfW - rCorner, halfW);
+
+      sqPlateShape.lineTo(-halfW + rCorner, halfW);
+
+      sqPlateShape.quadraticCurveTo(-halfW, halfW, -halfW, halfW - rCorner);
+
+      sqPlateShape.lineTo(-halfW, -halfW + rCorner);
+
+      sqPlateShape.quadraticCurveTo(-halfW, -halfW, -halfW + rCorner, -halfW);
+
+
+
+      const centerBore = new THREE.Path();
+
+      centerBore.absarc(0, 0, 0.48, 0, Math.PI * 2, true);
+
+      sqPlateShape.holes.push(centerBore);
+
+
+
+      const sqPlateGeo = new THREE.ExtrudeGeometry(sqPlateShape, { depth: 0.046, bevelEnabled: false });
+
+      sqPlateGeo.rotateX(Math.PI / 2);
+
+      const sqPlate = new THREE.Mesh(sqPlateGeo, materials.steelOuter);
+
+      sqPlate.position.y = -0.96;
+
+      tagMesh(sqPlate, 'support');
+
+      supportGroup.add(sqPlate);
+
+
+
+      const anchorGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.038, 6);
+
+      const boltCoords = [-0.86, -0.28, 0.28, 0.86];
+
+      boltCoords.forEach((bx) => {
+
+        boltCoords.forEach((bz) => {
+
+          if (Math.abs(bx) === 0.86 || Math.abs(bz) === 0.86) {
+
+            const bMesh = new THREE.Mesh(anchorGeo, materials.steelDark);
+
+            bMesh.position.set(bx, -0.942, bz);
+
+            tagMesh(bMesh, 'support', { addEdges: false });
+
+            supportGroup.add(bMesh);
+
+          }
+
+        });
+
+      });
+
+
+
+      const postX = 0.72;
+
+      const postZ = 0.72;
+
+      const postH = 1.06;
+
+      const postY = -1.00 - postH * 0.5;
+
+      const postGeo = new THREE.BoxGeometry(0.072, postH, 0.072);
+
+
+
+      [[-postX, -postZ], [postX, -postZ], [-postX, postZ], [postX, postZ]].forEach(([px, pz]) => {
+
+        const post = new THREE.Mesh(postGeo, materials.steelOuter);
+
+        post.position.set(px, postY, pz);
+
+        tagMesh(post, 'support');
+
+        supportGroup.add(post);
+
+      });
+
+
+
+      const crossTubeGeo = new THREE.BoxGeometry(postX * 2 + 0.072, 0.072, 0.072);
+
+      [-postZ, postZ].forEach((cz) => {
+
+        const cross = new THREE.Mesh(crossTubeGeo, materials.steelOuter);
+
+        cross.position.set(0, -1.98, cz);
+
+        tagMesh(cross, 'support');
+
+        supportGroup.add(cross);
+
+      });
+
+
+
+      const diagGeo = new THREE.BoxGeometry(0.048, 0.82, 0.048);
+
+      [-postZ, postZ].forEach((dz) => {
+
+        const diag = new THREE.Mesh(diagGeo, materials.steelMachined);
+
+        diag.position.set(-0.32, -1.68, dz);
+
+        diag.rotation.z = -0.62;
+
+        tagMesh(diag, 'support');
+
+        supportGroup.add(diag);
+
+      });
+
+
+
+      [-postX, postX].forEach((rx) => {
+
+        const dir = rx < 0 ? 1 : -1;
+
+        const runner = new THREE.Mesh(
+
+          new THREE.BoxGeometry(0.072, 0.072, 1.98),
+
+          materials.steelOuter
+
+        );
+
+        runner.position.set(rx, -2.06, 0);
+
+        tagMesh(runner, 'support');
+
+        supportGroup.add(runner);
+
+
+
+        [-0.954, 0.954].forEach((ez) => {
+
+          const foot = new THREE.Mesh(
+
+            new THREE.BoxGeometry(0.36, 0.072, 0.072),
+
+            materials.steelOuter
+
+          );
+
+          foot.position.set(rx + dir * 0.144, -2.06, ez);
+
+          tagMesh(foot, 'support');
+
+          supportGroup.add(foot);
+
+        });
+
+      });
+
+
+
+      [-0.095, 0.0, 0.095].forEach((hx, idx) => {
+
+        const curve = new THREE.CatmullRomCurve3([
+
+          new THREE.Vector3(hx, -1.38, 0.03),
+
+          new THREE.Vector3(hx * 1.35, -1.78, 0.12 + idx * 0.04),
+
+          new THREE.Vector3(hx * 1.15, -1.98, 0.36 + idx * 0.03),
+
+          new THREE.Vector3(-0.22 + hx, -1.94, 0.66),
+
+          new THREE.Vector3(-0.34 + hx, -1.58, 0.68),
+
+        ]);
+
+        const tubeGeo = new THREE.TubeGeometry(curve, 36, 0.022, 10, false);
+
+        const hoseMesh = new THREE.Mesh(tubeGeo, materials.hoseRubber);
+
+        tagMesh(hoseMesh, 'support', { addEdges: false });
+
+        supportGroup.add(hoseMesh);
+
+      });
+
+    }
+
+    buildSupportStructure();
+
+
+
+    // =========================================================================
+
+    // 8. ANALYTICAL RANKINE VORTEX + LOGARITHMIC SPIRAL CFD SOLVER
+
+    // =========================================================================
+
+    const R_DRUM = 0.575;
+
+    const R_CORE = 0.78;
+
+
+
+    function evaluateCFDField(x, y, z) {
+
+      if (state.stopped) {
+
+        return {
+
+          vx: 0,
+
+          vy: 0,
+
+          vz: 0,
+
+          speed: 0,
+
+          pressure: 4.5 - y * 4.2,
+
+          vorticity: 0,
+
+          foam: 0,
+
+          r: Math.hypot(x, z),
+
+        };
+
+      }
+
+
+
+      const flowNorm = THREE.MathUtils.clamp((state.flow - 0.3) / 2.1, 0, 1);
+
+      const headNorm = THREE.MathUtils.clamp((state.head - 0.4) / 1.1, 0, 1);
+
+      const r = Math.hypot(x, z);
+
+
+
+      const inIntake = x < 0.05 && z < -1.55 && z > -2.80 && y > -0.15;
+
+      const inTailrace = y < -0.75;
+
+
+
+      let vx = 0;
+
+      let vy = 0;
+
+      let vz = 0;
+
+
+
+      const v0 = Math.sqrt(2 * 9.81 * state.head);
+
+      const vThetaPeak = v0 * (0.82 + 0.26 * flowNorm);
+
+
+
+      if (inIntake && r > 1.55) {
+
+        const blend = THREE.MathUtils.smoothstep(x, -0.55, 0.05);
+
+        const vIn = 1.05 + flowNorm * 1.25;
+
+        const rSafe = Math.max(r, 0.6);
+
+        const vTheta = vThetaPeak * ((2.0 * (rSafe / R_CORE)) / (1.0 + Math.pow(rSafe / R_CORE, 2)));
+
+        const tx = -z / rSafe;
+
+        const tz = x / rSafe;
+
+        vx = THREE.MathUtils.lerp(vIn, tx * vTheta, blend);
+
+        vz = THREE.MathUtils.lerp(0.05 * (z + 2.18), tz * vTheta, blend);
+
+        vy = -0.03 * blend;
+
+      } else if (inTailrace) {
+
+        const rSafe = Math.max(r, 0.45);
+
+        const swirlDecay = Math.exp(-Math.max(0, x + 0.1) * 0.9);
+
+        const vSwirl = vThetaPeak * 0.34 * swirlDecay;
+
+        const tx = -z / rSafe;
+
+        const tz = x / rSafe;
+
+        const vOut = 1.25 + flowNorm * 1.35;
+
+        vx = vOut + tx * vSwirl;
+
+        vz = tz * vSwirl - z * 0.25;
+
+        vy = -0.18 * Math.exp(-(y + 1.55) * 1.8);
+
+      } else {
+
+        const rSafe = Math.max(r, R_DRUM);
+
+        const ratio = rSafe / R_CORE;
+
+        const vTheta = vThetaPeak * ((2.0 * ratio) / (1.0 + ratio * ratio));
+
+        const vRadial = -(0.42 + flowNorm * 0.48) * (R_CORE / (rSafe + 0.18));
+
+
+
+        const erX = x / rSafe;
+
+        const erZ = z / rSafe;
+
+        const etX = -z / rSafe;
+
+        const etZ = x / rSafe;
+
+
+
+        vx = erX * vRadial + etX * vTheta;
+
+        vz = erZ * vRadial + etZ * vTheta;
+
+
+
+        const throatMask = 1.0 - THREE.MathUtils.smoothstep(rSafe, 0.72, 1.18);
+
+        vy = -(1.35 + flowNorm * 1.25 + headNorm * 0.65) * throatMask - 0.06;
+
+      }
+
+
+
+      const speed = Math.hypot(vx, vy, vz);
+
+      const pHydro = (0.74 - y) * 4.4 + headNorm * 3.2;
+
+      const pDyn = 0.5 * speed * speed;
+
+      const pressure = THREE.MathUtils.clamp(pHydro - pDyn + 2.2, -8.0, 14.0);
+
+
+
+      const rCoreRatio = Math.max(r, R_DRUM) / R_CORE;
+
+      const coreVort = (2.0 * vThetaPeak / R_CORE) / Math.pow(1.0 + rCoreRatio * rCoreRatio, 1.6);
+
+      const bladeShear = r < 1.12 && Math.abs(y + 0.18) < 0.35 ? 9.5 * (0.5 + 0.5 * flowNorm) : 0;
+
+      const vorticity = THREE.MathUtils.clamp(coreVort * 2.1 + bladeShear, 0.0, 36.0);
+
+
+
+      const eyeLip = Math.exp(-Math.pow((r - 0.72) / 0.16, 2));
+
+      const jumpBand = inTailrace && x > 0.65 && x < 1.65 ? 0.72 : 0.0;
+
+      const foam = THREE.MathUtils.clamp((eyeLip * 0.85 + jumpBand) * (0.42 + 0.58 * flowNorm), 0, 1);
+
+
+
+      return { vx, vy, vz, speed, pressure, vorticity, foam, r };
+
+    }
+
+
+
+    function sampleCFDColor(scalarMode, speed, pressure, vorticity, outColor) {
+
+      if (scalarMode === 'water') {
+
+        outColor.setHex(0x38bdf8);
+
+        return outColor;
+
+      }
+
+      let t = 0;
+
+      if (scalarMode === 'velocity') {
+
+        t = THREE.MathUtils.clamp(speed / 4.2, 0, 1);
+
+        if (t < 0.25) outColor.setHex(0x30123b).lerp(new THREE.Color(0x28bbec), t / 0.25);
+
+        else if (t < 0.50) outColor.setHex(0x28bbec).lerp(new THREE.Color(0xa2fc3c), (t - 0.25) / 0.25);
+
+        else if (t < 0.78) outColor.setHex(0xa2fc3c).lerp(new THREE.Color(0xfb8022), (t - 0.50) / 0.28);
+
+        else outColor.setHex(0xfb8022).lerp(new THREE.Color(0x7a0403), (t - 0.78) / 0.22);
+
+      } else if (scalarMode === 'pressure') {
+
+        t = THREE.MathUtils.clamp((pressure + 8.0) / 22.0, 0, 1);
+
+        if (t < 0.5) outColor.setHex(0x1d4ed8).lerp(new THREE.Color(0xf8fafc), t / 0.5);
+
+        else outColor.setHex(0xf8fafc).lerp(new THREE.Color(0xb91c1c), (t - 0.5) / 0.5);
+
+      } else {
+
+        t = THREE.MathUtils.clamp(vorticity / 36.0, 0, 1);
+
+        if (t < 0.33) outColor.setHex(0x0d0887).lerp(new THREE.Color(0x7e03a8), t / 0.33);
+
+        else if (t < 0.68) outColor.setHex(0x7e03a8).lerp(new THREE.Color(0xf89540), (t - 0.33) / 0.35);
+
+        else outColor.setHex(0xf89540).lerp(new THREE.Color(0xf0f921), (t - 0.68) / 0.32);
+
+      }
+
+      return outColor;
+
+    }
+
+
+
+    function getVortexSurfaceY(x, z) {
+
+      const flowNorm = state.stopped ? 0.0 : THREE.MathUtils.clamp((state.flow - 0.3) / 2.1, 0, 1);
+
+      const yBase = 0.26 + state.head * 0.65;
+
+      const r = Math.hypot(x, z);
+
+      const funnelDepth = (0.42 + state.head * 0.44 + flowNorm * 0.24) * (state.stopped ? 0.10 : 1.0);
+
+      const dr = Math.max(0, r - R_DRUM);
+
+      const depression = funnelDepth / (1.0 + Math.pow(dr / 0.48, 2));
+
+      return yBase - depression;
+
+    }
+
+
+
+    // =========================================================================
+
+    // 9. PARAMETRIC POLAR-SPIRAL CFD WATER FREE-SURFACE MESH (220 x 44)
+
+    // =========================================================================
+
+    const cfdWaterGroup = new THREE.Group();
+
+    scene.add(cfdWaterGroup);
+
+
+
+    const cfdUniforms = {
+
+      uTime: { value: 0 },
+
+      uFlow: { value: 0.55 },
+
+      uHead: { value: 0.74 },
+
+      uStopped: { value: 0.0 },
+
+      uScalarMode: { value: 0 },
+
+      uShowMesh: { value: 0.0 },
+
+    };
+
+
+
+    const freeSurfaceShaderMat = new THREE.ShaderMaterial({
+
+      uniforms: cfdUniforms,
+
+      transparent: true,
+
+      side: THREE.DoubleSide,
+
+      depthWrite: false,
+
+      extensions: {
+
+        derivatives: true,
+
+      },
+
+      vertexShader: `
+
+        attribute float aVel;
+
+        attribute float aPress;
+
+        attribute float aVort;
+
+        attribute float aFoam;
+
+        attribute vec2 aGridUv;
+
+
+
+        uniform float uTime;
+
+        uniform float uFlow;
+
+        uniform float uStopped;
+
+
+
+        varying float vVel;
+
+        varying float vPress;
+
+        varying float vVort;
+
+        varying float vFoam;
+
+        varying vec2 vGridUv;
+
+        varying vec3 vWorldPos;
+
+        varying vec3 vNormalW;
+
+
+
+        void main() {
+
+          vVel = aVel;
+
+          vPress = aPress;
+
+          vVort = aVort;
+
+          vFoam = aFoam;
+
+          vGridUv = aGridUv;
+
+
+
+          vec3 pos = position;
+
+          float activeFlow = (1.0 - uStopped) * (0.45 + 0.55 * clamp((uFlow - 0.3) / 2.1, 0.0, 1.0));
+
+
+
+          float angle = atan(pos.z, pos.x);
+
+          float r = length(pos.xz);
+
+          float wave1 = sin(angle * 4.0 - r * 8.5 + uTime * 4.5 * activeFlow) * 0.015;
+
+          float wave2 = cos(angle * 7.0 + r * 13.0 - uTime * 6.0 * activeFlow) * 0.008;
+
+          pos.y += (wave1 + wave2) * activeFlow * smoothstep(0.54, 0.85, r);
+
+
+
+          vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+
+          vWorldPos = worldPos.xyz;
+
+          vNormalW = normalize(normalMatrix * normal);
+
+
+
+          gl_Position = projectionMatrix * viewMatrix * worldPos;
+
+        }
+
+      `,
+
+      fragmentShader: `
+
+        uniform float uTime;
+
+        uniform float uFlow;
+
+        uniform float uStopped;
+
+        uniform int uScalarMode;
+
+        uniform float uShowMesh;
+
+
+
+        varying float vVel;
+
+        varying float vPress;
+
+        varying float vVort;
+
+        varying float vFoam;
+
+        varying vec2 vGridUv;
+
+        varying vec3 vWorldPos;
+
+        varying vec3 vNormalW;
+
+
+
+        vec3 colormapVelocity(float t) {
+
+          t = clamp(t, 0.0, 1.0);
+
+          vec3 c0 = vec3(0.188, 0.071, 0.231);
+
+          vec3 c1 = vec3(0.157, 0.733, 0.925);
+
+          vec3 c2 = vec3(0.635, 0.988, 0.235);
+
+          vec3 c3 = vec3(0.984, 0.502, 0.133);
+
+          vec3 c4 = vec3(0.478, 0.016, 0.012);
+
+          if (t < 0.25) return mix(c0, c1, t / 0.25);
+
+          if (t < 0.50) return mix(c1, c2, (t - 0.25) / 0.25);
+
+          if (t < 0.78) return mix(c2, c3, (t - 0.50) / 0.28);
+
+          return mix(c3, c4, (t - 0.78) / 0.22);
+
+        }
+
+
+
+        vec3 colormapPressure(float t) {
+
+          t = clamp(t, 0.0, 1.0);
+
+          vec3 cold = vec3(0.114, 0.306, 0.847);
+
+          vec3 mid  = vec3(0.960, 0.975, 0.990);
+
+          vec3 warm = vec3(0.725, 0.110, 0.110);
+
+          if (t < 0.5) return mix(cold, mid, t * 2.0);
+
+          return mix(mid, warm, (t - 0.5) * 2.0);
+
+        }
+
+
+
+        vec3 colormapVorticity(float t) {
+
+          t = clamp(t, 0.0, 1.0);
+
+          vec3 p0 = vec3(0.051, 0.031, 0.529);
+
+          vec3 p1 = vec3(0.494, 0.012, 0.659);
+
+          vec3 p2 = vec3(0.973, 0.584, 0.251);
+
+          vec3 p3 = vec3(0.941, 0.976, 0.129);
+
+          if (t < 0.33) return mix(p0, p1, t / 0.33);
+
+          if (t < 0.68) return mix(p1, p2, (t - 0.33) / 0.35);
+
+          return mix(p2, p3, (t - 0.68) / 0.32);
+
+        }
+
+
+
+        void main() {
+
+          float activeFlow = 1.0 - uStopped;
+
+          float angle = atan(vWorldPos.z, vWorldPos.x);
+
+          float r = length(vWorldPos.xz);
+
+
+
+          float streak = sin(angle * 8.0 - log(max(r, 0.35)) * 16.0 + uTime * 3.8 * activeFlow);
+
+          float streakMask = smoothstep(0.55, 0.98, streak) * 0.22 * activeFlow;
+
+
+
+          vec3 baseColor;
+
+          float scalarNorm = 0.0;
+
+          float alpha = 0.84;
+
+
+
+          if (uScalarMode == 0) {
+
+            scalarNorm = clamp(vVel / 4.2, 0.0, 1.0);
+
+            baseColor = colormapVelocity(scalarNorm);
+
+          } else if (uScalarMode == 1) {
+
+            scalarNorm = clamp((vPress + 8.0) / 22.0, 0.0, 1.0);
+
+            baseColor = colormapPressure(scalarNorm);
+
+          } else if (uScalarMode == 2) {
+
+            scalarNorm = clamp(vVort / 36.0, 0.0, 1.0);
+
+            baseColor = colormapVorticity(scalarNorm);
+
+          } else {
+
+            float depthFactor = clamp((vWorldPos.y + 0.15) / 1.05, 0.0, 1.0);
+
+            vec3 deepRiverTeal = vec3(0.022, 0.255, 0.335);
+
+            vec3 brightCyan = vec3(0.065, 0.665, 0.855);
+
+            baseColor = mix(brightCyan, deepRiverTeal, depthFactor);
+
+
+
+            vec3 viewDir = normalize(cameraPosition - vWorldPos);
+
+            float fresnel = pow(1.0 - abs(dot(normalize(vNormalW), viewDir)), 2.4);
+
+            baseColor = mix(baseColor, vec3(0.78, 0.95, 1.0), fresnel * 0.45);
+
+
+
+            float foamNoise = sin(angle * 14.0 - r * 20.0 + uTime * 5.0 * activeFlow) * 0.5 + 0.5;
+
+            float foamLevel = clamp(vFoam * (0.62 + 0.58 * foamNoise) + streakMask * 1.45, 0.0, 1.0);
+
+            baseColor = mix(baseColor, vec3(0.95, 0.99, 1.0), foamLevel * 0.86);
+
+            alpha = mix(0.72, 0.94, foamLevel);
+
+          }
+
+
+
+          if (uScalarMode != 3) {
+
+            float contourVal = scalarNorm * 10.0;
+
+            float fw = max(fwidth(contourVal), 0.0001);
+
+            float distToLine = abs(fract(contourVal - 0.5) - 0.5) / fw;
+
+            float isoline = 1.0 - smoothstep(0.0, 1.4, distToLine);
+
+            baseColor = mix(baseColor, vec3(0.04, 0.07, 0.11), isoline * 0.48);
+
+            baseColor += vec3(streakMask * 0.32);
+
+          }
+
+
+
+          if (uShowMesh > 0.5) {
+
+            vec2 gridCoord = vGridUv * vec2(110.0, 22.0);
+
+            vec2 gridFw = max(fwidth(gridCoord), vec2(0.0001));
+
+            vec2 gridDist = abs(fract(gridCoord - 0.5) - 0.5) / gridFw;
+
+            float lineMin = min(gridDist.x, gridDist.y);
+
+            float wireMask = 1.0 - smoothstep(0.0, 1.25, lineMin);
+
+            baseColor = mix(baseColor, vec3(0.94, 0.98, 1.0), wireMask * 0.65);
+
+            alpha = max(alpha, wireMask * 0.88);
+
+          }
+
+
+
+          gl_FragColor = vec4(baseColor, alpha);
+
+        }
+
+      `,
+
+    });
+
+
+
+    const U_SEGS = 220;
+
+    const V_SEGS = 44;
+
+    const spiralWaterGeo = new THREE.BufferGeometry();
+
+
+
+    function initSpiralWaterGeometry() {
+
+      const vertCount = (U_SEGS + 1) * (V_SEGS + 1);
+
+      const positions = new Float32Array(vertCount * 3);
+
+      const normals = new Float32Array(vertCount * 3);
+
+      const aVel = new Float32Array(vertCount);
+
+      const aPress = new Float32Array(vertCount);
+
+      const aVort = new Float32Array(vertCount);
+
+      const aFoam = new Float32Array(vertCount);
+
+      const aGridUv = new Float32Array(vertCount * 2);
+
+      const indices = [];
+
+
+
+      for (let i = 0; i < U_SEGS; i++) {
+
+        for (let j = 0; j < V_SEGS; j++) {
+
+          const a = i * (V_SEGS + 1) + j;
+
+          const b = (i + 1) * (V_SEGS + 1) + j;
+
+          const c = (i + 1) * (V_SEGS + 1) + (j + 1);
+
+          const d = i * (V_SEGS + 1) + (j + 1);
+
+          indices.push(a, b, d, b, c, d);
+
+        }
+
+      }
+
+
+
+      spiralWaterGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      spiralWaterGeo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+
+      spiralWaterGeo.setAttribute('aVel', new THREE.BufferAttribute(aVel, 1));
+
+      spiralWaterGeo.setAttribute('aPress', new THREE.BufferAttribute(aPress, 1));
+
+      spiralWaterGeo.setAttribute('aVort', new THREE.BufferAttribute(aVort, 1));
+
+      spiralWaterGeo.setAttribute('aFoam', new THREE.BufferAttribute(aFoam, 1));
+
+      spiralWaterGeo.setAttribute('aGridUv', new THREE.BufferAttribute(aGridUv, 2));
+
+      spiralWaterGeo.setIndex(indices);
+
+    }
+
+    initSpiralWaterGeometry();
+
+
+
+    const spiralWaterMesh = new THREE.Mesh(spiralWaterGeo, freeSurfaceShaderMat);
+
+    cfdWaterGroup.add(spiralWaterMesh);
+
+
+
+    const tailraceWaterGeo = new THREE.PlaneGeometry(2.80, 1.98, 56, 24);
+
+    tailraceWaterGeo.rotateX(-Math.PI / 2);
+
+    tailraceWaterGeo.translate(1.50, -1.48, 0.0);
+
+    const tailVertCount = tailraceWaterGeo.attributes.position.count;
+
+    tailraceWaterGeo.setAttribute('aVel', new THREE.BufferAttribute(new Float32Array(tailVertCount), 1));
+
+    tailraceWaterGeo.setAttribute('aPress', new THREE.BufferAttribute(new Float32Array(tailVertCount), 1));
+
+    tailraceWaterGeo.setAttribute('aVort', new THREE.BufferAttribute(new Float32Array(tailVertCount), 1));
+
+    tailraceWaterGeo.setAttribute('aFoam', new THREE.BufferAttribute(new Float32Array(tailVertCount), 1));
+
+    const tailGridUv = new Float32Array(tailVertCount * 2);
+
+    for (let k = 0; k < tailVertCount; k++) {
+
+      tailGridUv[k * 2 + 0] = tailraceWaterGeo.attributes.uv.getX(k) * 0.35;
+
+      tailGridUv[k * 2 + 1] = tailraceWaterGeo.attributes.uv.getY(k);
+
+    }
+
+    tailraceWaterGeo.setAttribute('aGridUv', new THREE.BufferAttribute(tailGridUv, 2));
+
+    const tailraceWaterMesh = new THREE.Mesh(tailraceWaterGeo, freeSurfaceShaderMat);
+
+    cfdWaterGroup.add(tailraceWaterMesh);
+
+
+
+    function sampleSpiralSurfaceXZ(u, v) {
+
+      const INTAKE_SPLIT = 36 / U_SEGS;
+
+      if (u <= INTAKE_SPLIT) {
+
+        const s = u / INTAKE_SPLIT;
+
+        const x = THREE.MathUtils.lerp(-3.16, 0.0, s);
+
+        const z = THREE.MathUtils.lerp(-1.64, -2.73, v);
+
+        return { x, z };
+
+      }
+
+
+
+      const t = (u - INTAKE_SPLIT) / (1.0 - INTAKE_SPLIT);
+
+      const theta = t * Math.PI * 4.0;
+
+
+
+      let rInner = 1.64;
+
+      let rOuter = 2.73;
+
+
+
+      if (theta <= Math.PI * 2.0) {
+
+        const turn1 = theta / (Math.PI * 2.0);
+
+        rOuter = 2.73 - 1.11 * turn1;
+
+
+
+        if (theta < Math.PI * 1.62) {
+
+          rInner = 1.64;
+
+        } else {
+
+          const noseBlend = (theta - Math.PI * 1.62) / (Math.PI * 0.38);
+
+          rInner = THREE.MathUtils.lerp(1.64, 1.15, THREE.MathUtils.smoothstep(noseBlend, 0, 1));
+
+        }
+
+      } else {
+
+        const turn2 = (theta - Math.PI * 2.0) / (Math.PI * 2.0);
+
+        rOuter = THREE.MathUtils.lerp(1.46, 0.84, Math.pow(turn2, 0.85));
+
+        rInner = THREE.MathUtils.lerp(1.15, 0.58, Math.pow(turn2, 0.72));
+
+      }
+
+
+
+      const r = THREE.MathUtils.lerp(rInner, rOuter, v);
+
+      return {
+
+        x: Math.sin(theta) * r,
+
+        z: -Math.cos(theta) * r,
+
+      };
+
+    }
+
+
+
+    function rebuildCFDWaterMeshes() {
+
+      const pos = spiralWaterGeo.attributes.position;
+
+      const aVel = spiralWaterGeo.attributes.aVel;
+
+      const aPress = spiralWaterGeo.attributes.aPress;
+
+      const aVort = spiralWaterGeo.attributes.aVort;
+
+      const aFoam = spiralWaterGeo.attributes.aFoam;
+
+      const aGridUv = spiralWaterGeo.attributes.aGridUv;
+
+
+
+      let ptr = 0;
+
+      for (let i = 0; i <= U_SEGS; i++) {
+
+        const u = i / U_SEGS;
+
+        for (let j = 0; j <= V_SEGS; j++) {
+
+          const v = j / V_SEGS;
+
+          const { x, z } = sampleSpiralSurfaceXZ(u, v);
+
+          const y = getVortexSurfaceY(x, z);
+
+          const cfd = evaluateCFDField(x, y, z);
+
+
+
+          pos.setXYZ(ptr, x, y, z);
+
+          aVel.setX(ptr, cfd.speed);
+
+          aPress.setX(ptr, cfd.pressure);
+
+          aVort.setX(ptr, cfd.vorticity);
+
+          aFoam.setX(ptr, cfd.foam);
+
+          aGridUv.setXY(ptr, u, v);
+
+          ptr++;
+
+        }
+
+      }
+
+      pos.needsUpdate = true;
+
+      aVel.needsUpdate = true;
+
+      aPress.needsUpdate = true;
+
+      aVort.needsUpdate = true;
+
+      aFoam.needsUpdate = true;
+
+      aGridUv.needsUpdate = true;
+
+      spiralWaterGeo.computeVertexNormals();
+
+
+
+      const tPos = tailraceWaterGeo.attributes.position;
+
+      const tVel = tailraceWaterGeo.attributes.aVel;
+
+      const tPress = tailraceWaterGeo.attributes.aPress;
+
+      const tVort = tailraceWaterGeo.attributes.aVort;
+
+      const tFoam = tailraceWaterGeo.attributes.aFoam;
+
+      const flowNorm = THREE.MathUtils.clamp((state.flow - 0.3) / 2.1, 0, 1);
+
+
+
+      for (let k = 0; k < tPos.count; k++) {
+
+        const tx = tPos.getX(k);
+
+        const tz = tPos.getZ(k);
+
+        const jumpWave = Math.exp(-Math.pow((tx - 1.15) / 0.35, 2)) * 0.05;
+
+        const ty = TAILWATER_Y + flowNorm * 0.12 + jumpWave;
+
+        tPos.setY(k, ty);
+
+        const cfd = evaluateCFDField(tx, ty, tz);
+
+        tVel.setX(k, cfd.speed);
+
+        tPress.setX(k, cfd.pressure);
+
+        tVort.setX(k, cfd.vorticity);
+
+        tFoam.setX(k, cfd.foam);
+
+      }
+
+      tPos.needsUpdate = true;
+
+      tVel.needsUpdate = true;
+
+      tPress.needsUpdate = true;
+
+      tVort.needsUpdate = true;
+
+      tFoam.needsUpdate = true;
+
+      tailraceWaterGeo.computeVertexNormals();
+
+    }
+
+
+
+    // =========================================================================
+
+    // 10. 42 CONFORMING 3D CFD STREAMLINES
+
+    // =========================================================================
+
+    const streamlinesGroup = new THREE.Group();
+
+    scene.add(streamlinesGroup);
+
+
+
+    const streamlineShaderMat = new THREE.ShaderMaterial({
+
+      uniforms: cfdUniforms,
+
+      transparent: true,
+
+      depthWrite: false,
+
+      vertexShader: `
+
+        attribute float aVel;
+
+        attribute float aPress;
+
+        attribute float aVort;
+
+
+
+        varying vec2 vUv;
+
+        varying float vVel;
+
+        varying float vPress;
+
+        varying float vVort;
+
+
+
+        void main() {
+
+          vUv = uv;
+
+          vVel = aVel;
+
+          vPress = aPress;
+
+          vVort = aVort;
+
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+        }
+
+      `,
+
+      fragmentShader: `
+
+        uniform float uTime;
+
+        uniform float uFlow;
+
+        uniform float uStopped;
+
+        uniform int uScalarMode;
+
+
+
+        varying vec2 vUv;
+
+        varying float vVel;
+
+        varying float vPress;
+
+        varying float vVort;
+
+
+
+        vec3 colormapVelocity(float t) {
+
+          t = clamp(t, 0.0, 1.0);
+
+          vec3 c0 = vec3(0.188, 0.071, 0.231);
+
+          vec3 c1 = vec3(0.157, 0.733, 0.925);
+
+          vec3 c2 = vec3(0.635, 0.988, 0.235);
+
+          vec3 c3 = vec3(0.984, 0.502, 0.133);
+
+          vec3 c4 = vec3(0.478, 0.016, 0.012);
+
+          if (t < 0.25) return mix(c0, c1, t / 0.25);
+
+          if (t < 0.50) return mix(c1, c2, (t - 0.25) / 0.25);
+
+          if (t < 0.78) return mix(c2, c3, (t - 0.50) / 0.28);
+
+          return mix(c3, c4, (t - 0.78) / 0.22);
+
+        }
+
+
+
+        vec3 colormapPressure(float t) {
+
+          t = clamp(t, 0.0, 1.0);
+
+          vec3 cold = vec3(0.114, 0.306, 0.847);
+
+          vec3 mid  = vec3(0.960, 0.975, 0.990);
+
+          vec3 warm = vec3(0.725, 0.110, 0.110);
+
+          if (t < 0.5) return mix(cold, mid, t * 2.0);
+
+          return mix(mid, warm, (t - 0.5) * 2.0);
+
+        }
+
+
+
+        vec3 colormapVorticity(float t) {
+
+          t = clamp(t, 0.0, 1.0);
+
+          vec3 p0 = vec3(0.051, 0.031, 0.529);
+
+          vec3 p1 = vec3(0.494, 0.012, 0.659);
+
+          vec3 p2 = vec3(0.973, 0.584, 0.251);
+
+          vec3 p3 = vec3(0.941, 0.976, 0.129);
+
+          if (t < 0.33) return mix(p0, p1, t / 0.33);
+
+          if (t < 0.68) return mix(p1, p2, (t - 0.33) / 0.35);
+
+          return mix(p2, p3, (t - 0.68) / 0.32);
+
+        }
+
+
+
+        void main() {
+
+          vec3 col;
+
+          if (uScalarMode == 0) col = colormapVelocity(vVel / 4.2);
+
+          else if (uScalarMode == 1) col = colormapPressure((vPress + 8.0) / 22.0);
+
+          else if (uScalarMode == 2) col = colormapVorticity(vVort / 36.0);
+
+          else col = vec3(0.22, 0.78, 0.98);
+
+
+
+          float activeFlow = 1.0 - uStopped;
+
+          float speedScale = (0.45 + 0.55 * clamp((uFlow - 0.3) / 2.1, 0.0, 1.0)) * activeFlow;
+
+          float packet = fract(vUv.x * 5.0 - uTime * 1.15 * speedScale);
+
+          float pulse = smoothstep(0.60, 0.92, packet) * (1.0 - smoothstep(0.92, 1.0, packet));
+
+
+
+          float endFade = smoothstep(0.0, 0.05, vUv.x) * (1.0 - smoothstep(0.95, 1.0, vUv.x));
+
+          vec3 finalCol = mix(col, vec3(1.0, 1.0, 1.0), pulse * 0.78 * activeFlow);
+
+          float alpha = (0.42 + pulse * 0.54 * activeFlow) * endFade;
+
+
+
+          gl_FragColor = vec4(finalCol, alpha);
+
+        }
+
+      `,
+
+    });
+
+
+
+    function rebuildCFDStreamlines() {
+
+      while (streamlinesGroup.children.length > 0) {
+
+        const child = streamlinesGroup.children[0];
+
+        child.geometry.dispose();
+
+        streamlinesGroup.remove(child);
+
+      }
+
+
+
+      const flowNorm = THREE.MathUtils.clamp((state.flow - 0.3) / 2.1, 0, 1);
+
+      const yTop = getVortexSurfaceY(-2.5, -2.18) - 0.04;
+
+
+
+      const depthLayers = [0.22, 0.54, 0.84];
+
+      depthLayers.forEach((dFrac) => {
+
+        for (let s = 0; s < 14; s++) {
+
+          const vLane = (s + 0.5) / 14;
+
+          const pts = [];
+
+          const yStart = THREE.MathUtils.lerp(0.14, yTop - 0.06, dFrac);
+
+
+
+          for (let k = 0; k < 8; k++) {
+
+            const frac = k / 7;
+
+            const { x, z } = sampleSpiralSurfaceXZ(frac * (36 / U_SEGS), vLane);
+
+            pts.push(new THREE.Vector3(x, yStart - frac * 0.04, z));
+
+          }
+
+
+
+          const spiralTurns = 1.72 + (1.0 - vLane) * 0.35 + flowNorm * 0.18;
+
+          const totalTheta = spiralTurns * Math.PI * 2;
+
+          const rStart = THREE.MathUtils.lerp(1.66, 2.70, vLane);
+
+          const rBlade = THREE.MathUtils.lerp(0.64, 1.02, dFrac);
+
+
+
+          for (let k = 1; k <= 46; k++) {
+
+            const t = k / 46;
+
+            const theta = t * totalTheta;
+
+            const r = THREE.MathUtils.lerp(rStart, rBlade, Math.pow(t, 0.80));
+
+            const p = spiralPt(theta, r);
+
+            const surfY = getVortexSurfaceY(p.x, p.y);
+
+            const ySpiral = THREE.MathUtils.lerp(yStart - 0.04, surfY - 0.08, Math.pow(t, 0.65));
+
+            const yPlunge = THREE.MathUtils.lerp(
+
+              ySpiral,
+
+              -0.46,
+
+              Math.pow(Math.max(0, (t - 0.68) / 0.32), 1.45)
+
+            );
+
+            pts.push(new THREE.Vector3(p.x, yPlunge, p.y));
+
+          }
+
+
+
+          const lastPt = pts[pts.length - 1];
+
+          const exitTheta0 = Math.atan2(lastPt.x, -lastPt.z);
+
+          const exitR0 = Math.hypot(lastPt.x, lastPt.z);
+
+
+
+          for (let k = 1; k <= 16; k++) {
+
+            const t = k / 16;
+
+            const theta = exitTheta0 + t * Math.PI * 0.8 * (1.0 - t * 0.5);
+
+            const pSwirl = spiralPt(theta, exitR0 + t * 0.35);
+
+
+
+            const xOut = THREE.MathUtils.lerp(pSwirl.x, 2.82, Math.pow(t, 1.22));
+
+            const yOut = THREE.MathUtils.lerp(-0.46, -1.50 + dFrac * 0.16, Math.pow(t, 0.76));
+
+            const zOut = THREE.MathUtils.lerp(pSwirl.y, (dFrac - 0.5) * 1.45, t * 0.72);
+
+            pts.push(new THREE.Vector3(xOut, yOut, zOut));
+
+          }
+
+
+
+          const curve = new THREE.CatmullRomCurve3(pts);
+
+          const tubeGeo = new THREE.TubeGeometry(curve, 86, 0.011, 5, false);
+
+
+
+          const tPos = tubeGeo.attributes.position;
+
+          const vCount = tPos.count;
+
+          const aVel = new Float32Array(vCount);
+
+          const aPress = new Float32Array(vCount);
+
+          const aVort = new Float32Array(vCount);
+
+
+
+          for (let v = 0; v < vCount; v++) {
+
+            const cfd = evaluateCFDField(tPos.getX(v), tPos.getY(v), tPos.getZ(v));
+
+            aVel[v] = cfd.speed;
+
+            aPress[v] = cfd.pressure;
+
+            aVort[v] = cfd.vorticity;
+
+          }
+
+          tubeGeo.setAttribute('aVel', new THREE.BufferAttribute(aVel, 1));
+
+          tubeGeo.setAttribute('aPress', new THREE.BufferAttribute(aPress, 1));
+
+          tubeGeo.setAttribute('aVort', new THREE.BufferAttribute(aVort, 1));
+
+
+
+          streamlinesGroup.add(new THREE.Mesh(tubeGeo, streamlineShaderMat));
+
+        }
+
+      });
+
+    }
+
+
+
+    // =========================================================================
+
+    // 11. 240 ORIENTED 3D VELOCITY VECTOR ARROWS (InstancedMesh)
+
+    // =========================================================================
+
+    function createArrowGlyphGeometry() {
+
+      const shaftRadius = 0.014;
+
+      const headRadius = 0.036;
+
+      const shaftLen = 0.64;
+
+      const headLen = 0.36;
+
+
+
+      const positions = [];
+
+      const indices = [];
+
+      const segs = 8;
+
+
+
+      for (let i = 0; i <= segs; i++) {
+
+        const a = (i / segs) * Math.PI * 2;
+
+        positions.push(Math.cos(a) * shaftRadius, 0, Math.sin(a) * shaftRadius);
+
+        positions.push(Math.cos(a) * shaftRadius, shaftLen, Math.sin(a) * shaftRadius);
+
+      }
+
+      for (let i = 0; i < segs; i++) {
+
+        const p0 = i * 2;
+
+        indices.push(p0, p0 + 2, p0 + 1, p0 + 1, p0 + 2, p0 + 3);
+
+      }
+
+
+
+      const coneStart = positions.length / 3;
+
+      for (let i = 0; i <= segs; i++) {
+
+        const a = (i / segs) * Math.PI * 2;
+
+        positions.push(Math.cos(a) * headRadius, shaftLen, Math.sin(a) * headRadius);
+
+      }
+
+      const tipIdx = positions.length / 3;
+
+      positions.push(0, shaftLen + headLen, 0);
+
+
+
+      for (let i = 0; i < segs; i++) {
+
+        indices.push(coneStart + i, coneStart + i + 1, tipIdx);
+
+      }
+
+
+
+      const geo = new THREE.BufferGeometry();
+
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+      geo.setIndex(indices);
+
+      geo.computeVertexNormals();
+
+      return geo;
+
+    }
+
+
+
+    const VECTOR_COUNT = 240;
+
+    const vectorArrowsMesh = new THREE.InstancedMesh(
+
+      createArrowGlyphGeometry(),
+
+      new THREE.MeshBasicMaterial({ color: 0xffffff }),
+
+      VECTOR_COUNT
+
+    );
+
+    scene.add(vectorArrowsMesh);
+
+
+
+    const vectorStations = [];
+
+    for (let i = 0; i < VECTOR_COUNT; i++) {
+
+      if (i < 36) {
+
+        const u = ((i % 9) + 0.5) / 9;
+
+        const v = (Math.floor(i / 9) + 0.5) / 4;
+
+        vectorStations.push({
+
+          type: 'intake',
+
+          x: THREE.MathUtils.lerp(-3.0, -0.15, u),
+
+          z: THREE.MathUtils.lerp(-2.62, -1.74, v),
+
+        });
+
+      } else if (i < 156) {
+
+        const idx = i - 36;
+
+        const u = 0.17 + ((idx % 40) / 40) * 0.82;
+
+        const v = (Math.floor(idx / 40) + 0.5) / 3;
+
+        vectorStations.push({ type: 'spiral', u, v });
+
+      } else if (i < 204) {
+
+        const idx = i - 156;
+
+        const ang = ((idx % 24) / 24) * Math.PI * 2;
+
+        const ring = Math.floor(idx / 24);
+
+        vectorStations.push({
+
+          type: 'throat',
+
+          ang,
+
+          r: ring === 0 ? 0.72 : 0.96,
+
+          y: ring === 0 ? -0.06 : -0.30,
+
+        });
+
+      } else {
+
+        const idx = i - 204;
+
+        const u = ((idx % 12) + 0.5) / 12;
+
+        const v = (Math.floor(idx / 12) + 0.5) / 3;
+
+        vectorStations.push({
+
+          type: 'tailrace',
+
+          x: THREE.MathUtils.lerp(0.65, 2.75, u),
+
+          z: THREE.MathUtils.lerp(-0.82, 0.82, v),
+
+        });
+
+      }
+
+    }
+
+
+
+    const _upAxis = new THREE.Vector3(0, 1, 0);
+
+    const _dirVec = new THREE.Vector3();
+
+    const _quat = new THREE.Quaternion();
+
+    const _scaleVec = new THREE.Vector3();
+
+    const _mat4 = new THREE.Matrix4();
+
+    const _posVec = new THREE.Vector3();
+
+    const _tmpColor = new THREE.Color();
+
+
+
+    function updateCFDVectorArrows() {
+
+      const flowNorm = THREE.MathUtils.clamp((state.flow - 0.3) / 2.1, 0, 1);
+
+      const yInlet = getVortexSurfaceY(-0.1, -2.18);
+
+
+
+      for (let i = 0; i < VECTOR_COUNT; i++) {
+
+        const st = vectorStations[i];
+
+        let x = 0;
+
+        let y = 0;
+
+        let z = 0;
+
+
+
+        if (st.type === 'intake') {
+
+          x = st.x;
+
+          z = st.z;
+
+          y = yInlet - 0.10;
+
+        } else if (st.type === 'spiral') {
+
+          const pt = sampleSpiralSurfaceXZ(st.u, st.v);
+
+          x = pt.x;
+
+          z = pt.z;
+
+          y = getVortexSurfaceY(x, z) - 0.07;
+
+        } else if (st.type === 'throat') {
+
+          x = Math.cos(st.ang) * st.r;
+
+          z = Math.sin(st.ang) * st.r;
+
+          y = st.y;
+
+        } else {
+
+          x = st.x;
+
+          z = st.z;
+
+          y = TAILWATER_Y + 0.02 + flowNorm * 0.12;
+
+        }
+
+
+
+        const cfd = evaluateCFDField(x, y, z);
+
+        _posVec.set(x, y, z);
+
+
+
+        if (state.stopped || cfd.speed < 0.05) {
+
+          _scaleVec.set(0.001, 0.001, 0.001);
+
+          _quat.identity();
+
+        } else {
+
+          _dirVec.set(cfd.vx, cfd.vy, cfd.vz).normalize();
+
+          _quat.setFromUnitVectors(_upAxis, _dirVec);
+
+          const len = THREE.MathUtils.clamp(0.15 + (cfd.speed / 4.2) * 0.32, 0.15, 0.48);
+
+          _scaleVec.set(1.0, len, 1.0);
+
+        }
+
+
+
+        _mat4.compose(_posVec, _quat, _scaleVec);
+
+        vectorArrowsMesh.setMatrixAt(i, _mat4);
+
+
+
+        sampleCFDColor(state.scalarMode, cfd.speed, cfd.pressure, cfd.vorticity, _tmpColor);
+
+        vectorArrowsMesh.setColorAt(i, _tmpColor);
+
+      }
+
+
+
+      vectorArrowsMesh.instanceMatrix.needsUpdate = true;
+
+      if (vectorArrowsMesh.instanceColor) vectorArrowsMesh.instanceColor.needsUpdate = true;
+
+    }
+
+
+
+    // =========================================================================
+
+    // 12. 1,400 GPU MICRO-TRACERS / AERATED BUBBLES
+
+    // =========================================================================
+
+    const TRACER_COUNT = 1400;
+
+    const tracerGeo = new THREE.BufferGeometry();
+
+    const tracerSeeds = new Float32Array(TRACER_COUNT * 4);
+
+    const tracerDummyPos = new Float32Array(TRACER_COUNT * 3);
+
+
+
+    for (let i = 0; i < TRACER_COUNT; i++) {
+
+      tracerSeeds[i * 4 + 0] = Math.random();
+
+      tracerSeeds[i * 4 + 1] = Math.random() - 0.5;
+
+      tracerSeeds[i * 4 + 2] = Math.random() - 0.5;
+
+      tracerSeeds[i * 4 + 3] = Math.random() > 0.70 ? 1.0 : 0.0;
+
+    }
+
+
+
+    tracerGeo.setAttribute('position', new THREE.BufferAttribute(tracerDummyPos, 3));
+
+    tracerGeo.setAttribute('aSeed', new THREE.BufferAttribute(tracerSeeds, 4));
+
+
+
+    const tracerShaderMat = new THREE.ShaderMaterial({
+
+      uniforms: cfdUniforms,
+
+      transparent: true,
+
+      depthWrite: false,
+
+      blending: THREE.AdditiveBlending,
+
+      vertexShader: `
+
+        attribute vec4 aSeed;
+
+
+
+        uniform float uTime;
+
+        uniform float uFlow;
+
+        uniform float uHead;
+
+        uniform float uStopped;
+
+
+
+        varying float vSpeedNorm;
+
+        varying float vBubble;
+
+        varying float vAlpha;
+
+
+
+        void main() {
+
+          float activeFlow = 1.0 - uStopped;
+
+          float flowNorm = clamp((uFlow - 0.3) / 2.1, 0.0, 1.0);
+
+          float yTopBase = 0.26 + uHead * 0.65 - 0.08;
+
+
+
+          float speedMult = (0.14 + flowNorm * 0.22) * activeFlow;
+
+          float phase = fract(aSeed.x + uTime * speedMult);
+
+
+
+          vec3 pos;
+
+          float sNorm = 0.35;
+
+
+
+          if (phase < 0.22) {
+
+            float t = phase / 0.22;
+
+            pos.x = mix(-3.12, 0.0, t);
+
+            pos.y = yTopBase + aSeed.z * 0.24;
+
+            pos.z = -2.18 + aSeed.y * 0.96;
+
+            sNorm = 0.30 + flowNorm * 0.22;
+
+          } else if (phase < 0.76) {
+
+            float t = (phase - 0.22) / 0.54;
+
+            float theta = t * 11.4 + aSeed.y * 1.8;
+
+            float r = mix(2.15, 0.66, pow(t, 0.80)) + aSeed.y * 0.24 * (1.0 - t * 0.55);
+
+            pos.x = sin(theta) * r;
+
+            pos.z = -cos(theta) * r;
+
+            float yTop = yTopBase + aSeed.z * 0.20;
+
+            pos.y = mix(yTop, -0.42, pow(t, 1.18));
+
+            sNorm = 0.42 + sin(t * 3.14159) * 0.48 * (0.5 + 0.5 * flowNorm);
+
+          } else {
+
+            float t = (phase - 0.76) / 0.24;
+
+            pos.x = mix(0.45, 2.82, t);
+
+            pos.y = mix(-0.55, -1.46 + flowNorm * 0.10, min(1.0, t * 1.45)) + aSeed.z * 0.12;
+
+            pos.z = aSeed.y * 1.45;
+
+            sNorm = 0.38 - t * 0.12;
+
+          }
+
+
+
+          vSpeedNorm = clamp(sNorm, 0.0, 1.0);
+
+          vBubble = aSeed.w;
+
+          vAlpha = smoothstep(0.0, 0.06, phase) * (1.0 - smoothstep(0.92, 1.0, phase));
+
+
+
+          vec4 mvPos = modelViewMatrix * vec4(pos, 1.0);
+
+          gl_PointSize = clamp((30.0 + aSeed.w * 16.0) / -mvPos.z, 2.0, 8.0);
+
+          gl_Position = projectionMatrix * mvPos;
+
+        }
+
+      `,
+
+      fragmentShader: `
+
+        uniform int uScalarMode;
+
+        varying float vSpeedNorm;
+
+        varying float vBubble;
+
+        varying float vAlpha;
+
+
+
+        void main() {
+
+          float dist = length(gl_PointCoord - vec2(0.5));
+
+          if (dist > 0.5) discard;
+
+          float soft = smoothstep(0.5, 0.08, dist);
+
+
+
+          vec3 col = mix(vec3(0.22, 0.76, 0.98), vec3(0.96, 0.99, 1.0), max(vBubble * 0.85, vSpeedNorm * 0.6));
+
+          if (uScalarMode == 2) {
+
+            col = mix(vec3(0.75, 0.25, 0.95), vec3(0.98, 0.95, 0.25), vSpeedNorm);
+
+          }
+
+          gl_FragColor = vec4(col, soft * vAlpha * (0.45 + vBubble * 0.35));
+
+        }
+
+      `,
+
+    });
+
+
+
+    const gpuTracersPoints = new THREE.Points(tracerGeo, tracerShaderMat);
+
+    cfdWaterGroup.add(gpuTracersPoints);
+
+
+
+    const probeRingMesh = new THREE.Mesh(
+
+      new THREE.RingGeometry(0.065, 0.095, 32),
+
+      new THREE.MeshBasicMaterial({
+
+        color: 0x38bdf8,
+
+        side: THREE.DoubleSide,
+
+        transparent: true,
+
+        opacity: 0.92,
+
+      })
+
+    );
+
+    probeRingMesh.visible = false;
+
+    scene.add(probeRingMesh);
+
+
+
+    // =========================================================================
+
+    // 13. UI BINDINGS: WORKSPACES, ASSEMBLIES, SLIDERS, REGIMES & PROBE
+
+    // =========================================================================
+
+    const assemblyCardsEl = document.getElementById('assembly-cards');
+
+    const pinNodesEl = document.getElementById('cad-pin-nodes');
+
+    const leadersSvgEl = document.getElementById('cad-leaders-svg');
+
+    const pinElements = {};
+
+    const partVisibility = {
+
+      basin: true,
+
+      shroud: true,
+
+      impeller: true,
+
+      gearbox: true,
+
+      sealing: true,
+
+      generator: true,
+
+      support: true,
+
+      cabinet: true,
+
+    };
+
+
+
+    const EYE_OPEN_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+    const EYE_OFF_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+
+
+    SUBSYSTEMS.forEach((sub) => {
+
+      const card = document.createElement('div');
+
+      card.className = 'asm-card rounded-lg px-2 py-1.5 cursor-pointer';
+
+      card.dataset.partId = sub.id;
+
+      card.innerHTML = `
+
+        <div class="flex items-center justify-between gap-1.5">
+
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+
+            <span class="font-mono text-[9.5px] font-semibold text-sky-300 bg-sky-500/15 border border-sky-400/25 px-1.5 py-0.5 rounded">${sub.code}</span>
+
+            <span class="text-[11px] font-medium text-slate-200 truncate">${sub.name}</span>
+
+          </div>
+
+          <button class="eye-btn p-1 rounded hover:bg-white/10 text-slate-300 transition-colors" title="Toggle Visibility">
+
+            ${EYE_OPEN_SVG}
+
+          </button>
+
+        </div>
+
+        <div class="asm-metrics hidden mt-2 pt-1.5 border-t border-white/10 flex flex-col gap-1 font-mono text-[10px]"></div>
+
+      `;
+
+
+
+      card.addEventListener('click', (e) => {
+
+        if (e.target.closest('.eye-btn')) return;
+
+        selectPart(state.selectedPart === sub.id ? null : sub.id);
+
+      });
+
+      card.addEventListener('mouseenter', () => highlightPart(sub.id));
+
+      card.addEventListener('mouseleave', () => highlightPart(null));
+
+
+
+      const eyeBtn = card.querySelector('.eye-btn');
+
+      eyeBtn.addEventListener('click', (e) => {
+
+        e.stopPropagation();
+
+        partVisibility[sub.id] = !partVisibility[sub.id];
+
+        const vis = partVisibility[sub.id];
+
+        subsystemGroups[sub.id].visible = vis;
+
+        eyeBtn.innerHTML = vis ? EYE_OPEN_SVG : EYE_OFF_SVG;
+
+        eyeBtn.classList.toggle('text-slate-300', vis);
+
+        eyeBtn.classList.toggle('text-slate-600', !vis);
+
+        if (sub.id === 'basin') state.showBasin = vis;
+
+      });
+
+
+
+      assemblyCardsEl.appendChild(card);
+
+
+
+      const pinDiv = document.createElement('div');
+
+      pinDiv.className = 'cad-pin';
+
+      pinDiv.innerHTML = `<span class="cad-pin-badge">${sub.code} · ${sub.name}</span>`;
+
+      pinDiv.addEventListener('click', (e) => {
+
+        e.stopPropagation();
+
+        selectPart(sub.id);
+
+      });
+
+      pinNodesEl.appendChild(pinDiv);
+
+
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+      line.setAttribute('stroke', '#38bdf8');
+
+      line.setAttribute('stroke-width', '1.15');
+
+      line.setAttribute('stroke-opacity', '0.72');
+
+      leadersSvgEl.appendChild(line);
+
+
+
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+      dot.setAttribute('r', '2.5');
+
+      dot.setAttribute('fill', '#38bdf8');
+
+      leadersSvgEl.appendChild(dot);
+
+
+
+      pinElements[sub.id] = { div: pinDiv, line, dot, sub };
+
+    });
+
+
+
+    function refreshAssemblyCardMetrics() {
+
+      SUBSYSTEMS.forEach((sub) => {
+
+        const card = assemblyCardsEl.querySelector(`[data-part-id="${sub.id}"]`);
+
+        if (!card) return;
+
+        const metricsBox = card.querySelector('.asm-metrics');
+
+        const isSel = state.selectedPart === sub.id;
+
+        card.classList.toggle('selected', isSel);
+
+        metricsBox.classList.toggle('hidden', !isSel);
+
+        if (isSel) {
+
+          const items = sub.getMetrics(state);
+
+          metricsBox.innerHTML = items
+
+            .map(
+
+              (m) => `
+
+              <div class="flex items-center justify-between gap-2">
+
+                <span class="text-slate-400">${m.k}</span>
+
+                <span class="text-sky-200 font-medium tabular">${m.v}</span>
+
+              </div>`
+
+            )
+
+            .join('');
+
+        }
+
+      });
+
+    }
+
+
+
+    // Domain Workspace Switcher ("1. RIVER & WTP" vs "2. TURBINE CORE")
+
+    function setWorkspace(wsKey) {
+
+      state.workspace = wsKey;
+
+      document.querySelectorAll('.ws-btn').forEach((b) => {
+
+        b.classList.toggle('active', b.dataset.workspace === wsKey);
+
+      });
+
+
+
+      if (wsKey === 'detail') {
+
+        setViewMode('cutaway');
+
+        flyCameraTo(CAMERA_PRESETS.core.pos, CAMERA_PRESETS.core.target);
+
+      } else {
+
+        setViewMode('assembled');
+
+        flyCameraTo(CAMERA_PRESETS.weir.pos, CAMERA_PRESETS.weir.target);
+
+      }
+
+    }
+
+
+
+    document.querySelectorAll('.ws-btn').forEach((btn) => {
+
+      btn.addEventListener('click', () => setWorkspace(btn.dataset.workspace));
+
+    });
+
+
+
+    function setScalarMode(modeKey) {
+
+      state.scalarMode = modeKey;
+
+      const cfg = SCALAR_CONFIGS[modeKey];
+
+      cfdUniforms.uScalarMode.value = cfg.index;
+
+
+
+      document.querySelectorAll('.scalar-btn').forEach((b) => {
+
+        b.classList.toggle('active', b.dataset.scalar === modeKey);
+
+      });
+
+
+
+      document.getElementById('cb-title').textContent = cfg.title;
+
+      document.getElementById('cb-min').textContent = cfg.min;
+
+      document.getElementById('cb-max').textContent = modeKey === 'water' ? state.head.toFixed(2) : cfg.max;
+
+      document.getElementById('cb-unit').textContent = cfg.unit;
+
+      document.getElementById('cb-gradient').style.background = cfg.gradient;
+
+
+
+      updateCFDVectorArrows();
+
+    }
+
+
+
+    document.querySelectorAll('.scalar-btn').forEach((btn) => {
+
+      btn.addEventListener('click', () => setScalarMode(btn.dataset.scalar));
+
+    });
+
+
+
+    function syncLayerButton(btnId, active) {
+
+      const btn = document.getElementById(btnId);
+
+      if (!btn) return;
+
+      btn.classList.toggle('bg-sky-500/15', active);
+
+      btn.classList.toggle('text-sky-200', active);
+
+      btn.classList.toggle('border-sky-400/35', active);
+
+      btn.classList.toggle('bg-white/[0.03]', !active);
+
+      btn.classList.toggle('text-slate-400', !active);
+
+      btn.classList.toggle('border-white/10', !active);
+
+      const dot = btn.querySelector('span');
+
+      if (dot) {
+
+        dot.classList.toggle('bg-sky-400', active);
+
+        dot.classList.toggle('bg-slate-500', !active);
+
+      }
+
+    }
+
+
+
+    function bindLayerToggle(btnId, stateKey, onToggle) {
+
+      document.getElementById(btnId).addEventListener('click', () => {
+
+        state[stateKey] = !state[stateKey];
+
+        syncLayerButton(btnId, state[stateKey]);
+
+        if (onToggle) onToggle(state[stateKey]);
+
+      });
+
+    }
+
+
+
+    const btnToggleVortex = document.getElementById('toggle-vortex');
+
+    btnToggleVortex.addEventListener('click', () => {
+
+      state.showVortex = !state.showVortex;
+
+      spiralWaterMesh.visible = state.showVortex;
+
+      tailraceWaterMesh.visible = state.showVortex;
+
+      if (!state.showVortex) probeRingMesh.visible = false;
+
+      btnToggleVortex.textContent = state.showVortex ? 'SURFACE ON' : 'SURFACE OFF';
+
+      btnToggleVortex.classList.toggle('text-sky-300', state.showVortex);
+
+      btnToggleVortex.classList.toggle('bg-sky-500/15', state.showVortex);
+
+      btnToggleVortex.classList.toggle('border-sky-400/30', state.showVortex);
+
+      btnToggleVortex.classList.toggle('text-slate-400', !state.showVortex);
+
+      btnToggleVortex.classList.toggle('bg-white/[0.04]', !state.showVortex);
+
+      btnToggleVortex.classList.toggle('border-white/10', !state.showVortex);
+
+    });
+
+
+
+    bindLayerToggle('toggle-river', 'showRiver', (v) => {
+
+      riverSiteGroup.visible = v;
+
+    });
+
+    bindLayerToggle('toggle-streamlines', 'showStreamlines', (v) => {
+
+      streamlinesGroup.visible = v;
+
+    });
+
+    bindLayerToggle('toggle-vectors', 'showVectors', (v) => {
+
+      vectorArrowsMesh.visible = v;
+
+    });
+
+    bindLayerToggle('toggle-tracers', 'showTracers', (v) => {
+
+      gpuTracersPoints.visible = v;
+
+    });
+
+    bindLayerToggle('toggle-mesh', 'showMesh', (v) => {
+
+      cfdUniforms.uShowMesh.value = v ? 1.0 : 0.0;
+
+    });
+
+    bindLayerToggle('toggle-pins', 'showPins', (v) => {
+
+      document.getElementById('cad-pins-layer').style.display = v ? 'block' : 'none';
+
+    });
+
+
+
+    function flyCameraTo(pos, target) {
+
+      state.targetCamPos.copy(pos);
+
+      state.targetLookAt.copy(target);
+
+      state.cameraAnimating = true;
+
+    }
+
+
+
+    document.querySelectorAll('.cam-btn').forEach((btn) => {
+
+      btn.addEventListener('click', () => {
+
+        const camKey = btn.dataset.cam;
+
+        const preset = CAMERA_PRESETS[camKey];
+
+        if (!preset) return;
+
+        document.querySelectorAll('.cam-btn').forEach((b) => b.classList.remove('active'));
+
+        btn.classList.add('active');
+
+        flyCameraTo(preset.pos, preset.target);
+
+      });
+
+    });
+
+
+
+    const sliderExplode = document.getElementById('slider-explode');
+
+    const valExplode = document.getElementById('val-explode');
+
+
+
+    function setViewMode(mode) {
+
+      state.viewMode = mode;
+
+      state.targetExplodeOverride = null;
+
+      document.querySelectorAll('.mode-btn').forEach((b) => {
+
+        b.classList.toggle('active', b.dataset.mode === mode);
+
+      });
+
+      if (mode === 'exploded') {
+
+        sliderExplode.value = 100;
+
+        valExplode.textContent = '100%';
+
+      } else {
+
+        sliderExplode.value = 0;
+
+        valExplode.textContent = '0%';
+
+      }
+
+    }
+
+
+
+    document.querySelectorAll('.mode-btn').forEach((btn) => {
+
+      btn.addEventListener('click', () => setViewMode(btn.dataset.mode));
+
+    });
+
+
+
+    sliderExplode.addEventListener('input', (e) => {
+
+      const pct = parseInt(e.target.value, 10);
+
+      valExplode.textContent = `${pct}%`;
+
+      state.targetExplodeOverride = pct / 100;
+
+      document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+
+      if (pct === 0) document.querySelector('[data-mode="assembled"]').classList.add('active');
+
+      if (pct === 100) document.querySelector('[data-mode="exploded"]').classList.add('active');
+
+    });
+
+
+
+    // Hydraulic Sliders & Operating Regimes
+
+    const sliderFlow = document.getElementById('slider-flow');
+
+    const sliderHead = document.getElementById('slider-head');
+
+
+
+    document.getElementById('btn-snap-wtp').addEventListener('click', () => {
+
+      setPreset('wtp074');
+
+    });
+
+
+
+    function updateHydroSimulation() {
+
+      const displayFlow = state.stopped ? 0.00 : state.flow;
+
+      document.getElementById('val-flow').textContent = displayFlow.toFixed(2);
+
+      document.getElementById('val-head').textContent = state.head.toFixed(2);
+
+
+
+      cfdUniforms.uFlow.value = state.flow;
+
+      cfdUniforms.uHead.value = state.head;
+
+      cfdUniforms.uStopped.value = state.stopped ? 1.0 : 0.0;
+
+
+
+      const statusDot = document.getElementById('status-dot');
+
+      const statusText = document.getElementById('status-text');
+
+
+
+      state.v0 = Math.sqrt(2 * 9.81 * state.head);
+
+
+
+      if (state.stopped) {
+
+        state.powerHyd = 0.0;
+
+        state.powerElec = 0.0;
+
+        state.eff = 0.0;
+
+        state.rpm = 0;
+
+        state.dailyKwh = 0;
+
+        statusDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+
+        statusText.textContent = `LOCKOUT · H = ${state.head.toFixed(2)} m`;
+
+      } else {
+
+        state.powerHyd = (1000 * 9.81 * state.flow * state.head) / 1000;
+
+
+
+        // Calibrated to hit exact WTP 54.1% @ Q=0.55 & Full-Scale 65.4% @ Q=1.35
+
+        if (state.flow <= 0.75) {
+
+          const qRatio = state.flow / 0.55;
+
+          const hRatio = state.head / 0.74;
+
+          state.eff = THREE.MathUtils.clamp(
+
+            54.1 - 8.5 * Math.pow(qRatio - 1.0, 2) - 4.5 * Math.pow(hRatio - 1.0, 2),
+
+            40.0,
+
+            56.5
+
+          );
+
+          state.rpm = Math.round(
+
+            82 * Math.sqrt(state.head / 0.74) * (0.85 + 0.15 * (state.flow / 0.55))
+
+          );
+
+        } else {
+
+          const qRatio = state.flow / 1.35;
+
+          const hRatio = state.head / 0.74;
+
+          state.eff = THREE.MathUtils.clamp(
+
+            65.4 - 9.5 * Math.pow(qRatio - 1.0, 2) - 5.0 * Math.pow(hRatio - 1.0, 2),
+
+            48.0,
+
+            65.8
+
+          );
+
+          state.rpm = Math.round(
+
+            52 * Math.sqrt(state.head / 0.74) * (0.86 + 0.14 * (state.flow / 1.35))
+
+          );
+
+        }
+
+
+
+        state.powerElec = state.powerHyd * (state.eff / 100);
+
+        state.dailyKwh = Math.round(state.powerElec * 24);
+
+
+
+        statusDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 live-dot';
+
+        statusText.textContent = `WTP · H = ${state.head.toFixed(2)} m`;
+
+      }
+
+
+
+      document.getElementById('kpi-pelec').textContent = state.powerElec.toFixed(2);
+
+      document.getElementById('kpi-phyd').textContent = state.powerHyd.toFixed(2);
+
+      document.getElementById('kpi-eff').textContent = state.eff.toFixed(1);
+
+      document.getElementById('kpi-rpm').textContent = state.rpm.toString();
+
+      document.getElementById('kpi-v0').textContent = state.v0.toFixed(2);
+
+      document.getElementById('kpi-daily').textContent = state.dailyKwh.toString();
+
+
+
+      if (state.scalarMode === 'water') {
+
+        document.getElementById('cb-max').textContent = state.head.toFixed(2);
+
+      }
+
+
+
+      updateScadaScreenTexture();
+
+      syncHeadGaugeGeometry();
+
+      rebuildCFDWaterMeshes();
+
+      rebuildCFDStreamlines();
+
+      updateCFDVectorArrows();
+
+      if (state.selectedPart) refreshAssemblyCardMetrics();
+
+    }
+
+
+
+    sliderFlow.addEventListener('input', (e) => {
+
+      state.flow = parseFloat(e.target.value);
+
+      if (state.stopped) {
+
+        state.stopped = false;
+
+        document.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
+
+      }
+
+      updateHydroSimulation();
+
+    });
+
+
+
+    sliderHead.addEventListener('input', (e) => {
+
+      state.head = parseFloat(e.target.value);
+
+      if (state.stopped) {
+
+        state.stopped = false;
+
+        document.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
+
+      }
+
+      updateHydroSimulation();
+
+    });
+
+
+
+    function setPreset(presetName) {
+
+      state.preset = presetName;
+
+      document.querySelectorAll('.preset-btn').forEach((b) => {
+
+        b.classList.toggle('active', b.dataset.preset === presetName);
+
+      });
+
+
+
+      if (presetName === 'wtp074') {
+
+        state.stopped = false;
+
+        state.head = 0.74;
+
+        state.flow = 0.55;
+
+      } else if (presetName === 'river135') {
+
+        state.stopped = false;
+
+        state.head = 0.74;
+
+        state.flow = 1.35;
+
+      } else if (presetName === 'highflow') {
+
+        state.stopped = false;
+
+        state.head = 0.92;
+
+        state.flow = 1.85;
+
+      } else if (presetName === 'lockout') {
+
+        state.stopped = true;
+
+        state.head = 0.74;
+
+        state.flow = 0.55;
+
+      }
+
+
+
+      sliderFlow.value = state.flow;
+
+      sliderHead.value = state.head;
+
+      updateHydroSimulation();
+
+    }
+
+
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+
+      btn.addEventListener('click', () => setPreset(btn.dataset.preset));
+
+    });
+
+
+
+    const btnClearPart = document.getElementById('btn-clear-part');
+
+
+
+    function selectPart(partId) {
+
+      state.selectedPart = partId;
+
+      btnClearPart.classList.toggle('hidden', !partId);
+
+
+
+      Object.entries(pinElements).forEach(([id, obj]) => {
+
+        obj.div.classList.toggle('active', id === partId);
+
+      });
+
+
+
+      refreshAssemblyCardMetrics();
+
+
+
+      if (!partId) {
+
+        flyCameraTo(CAMERA_PRESETS.weir.pos, CAMERA_PRESETS.weir.target);
+
+        return;
+
+      }
+
+
+
+      const sub = SUBSYSTEMS.find((s) => s.id === partId);
+
+      if (!sub) return;
+
+
+
+      if ((partId === 'gearbox' || partId === 'generator' || partId === 'sealing') && state.viewMode === 'assembled') {
+
+        setViewMode('cutaway');
+
+      }
+
+
+
+      flyCameraTo(sub.camPos, sub.camTarget);
+
+    }
+
+
+
+    btnClearPart.addEventListener('click', () => selectPart(null));
+
+
+
+    window.addEventListener('keydown', (e) => {
+
+      if (e.key === 'Escape') selectPart(null);
+
+      if (e.key === '1') document.querySelector('[data-cam="weir"]').click();
+
+      if (e.key === '2') document.querySelector('[data-cam="iso"]').click();
+
+      if (e.key === '3') document.querySelector('[data-cam="top"]').click();
+
+      if (e.key === '4') document.querySelector('[data-cam="section"]').click();
+
+      if (e.key === '5') document.querySelector('[data-cam="core"]').click();
+
+    });
+
+
+
+    // =========================================================================
+
+    // 14. RAYCASTING: SNAPPED 3D SURFACE CFD PROBE + CAD PART HOVER/SELECT
+
+    // =========================================================================
+
+    const raycaster = new THREE.Raycaster();
+
+    const pointer = new THREE.Vector2(-99, -99);
+
+    const tooltipEl = document.getElementById('hover-tooltip');
+
+    const cfdProbeEl = document.getElementById('cfd-probe');
+
+    let pointerDownPos = { x: 0, y: 0 };
+
+
+
+    function highlightPart(partId) {
+
+      state.hoveredPart = partId;
+
+      interactiveMeshes.forEach((mesh) => {
+
+        if (!mesh.material || !mesh.material.emissive) return;
+
+        const isTarget =
+
+          mesh.userData.subsystemId === partId ||
+
+          mesh.userData.subsystemId === state.selectedPart;
+
+        if (isTarget && !mesh.userData.hasClonedMat) {
+
+          mesh.material = mesh.material.clone();
+
+          mesh.userData.hasClonedMat = true;
+
+        }
+
+        if (mesh.userData.hasClonedMat) {
+
+          if (mesh.userData.subsystemId === state.selectedPart) {
+
+            mesh.material.emissive.setHex(0x0284c7);
+
+            mesh.material.emissiveIntensity = 0.28;
+
+          } else if (mesh.userData.subsystemId === partId) {
+
+            mesh.material.emissive.setHex(0x38bdf8);
+
+            mesh.material.emissiveIntensity = 0.20;
+
+          } else {
+
+            mesh.material.emissive.setHex(0x000000);
+
+            mesh.material.emissiveIntensity = 0.0;
+
+          }
+
+        }
+
+      });
+
+    }
+
+
+
+    renderer.domElement.addEventListener('pointermove', (e) => {
+
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+
+
+      raycaster.setFromCamera(pointer, camera);
+
+
+
+      if (state.showVortex && spiralWaterMesh.visible) {
+
+        const waterHits = raycaster.intersectObjects([spiralWaterMesh, tailraceWaterMesh], false);
+
+        if (waterHits.length > 0) {
+
+          const hit = waterHits[0];
+
+          const pt = hit.point;
+
+          const cfd = evaluateCFDField(pt.x, pt.y, pt.z);
+
+
+
+          probeRingMesh.visible = true;
+
+          probeRingMesh.position.copy(pt).addScaledVector(hit.face ? hit.face.normal : _upAxis, 0.015);
+
+          if (hit.face) {
+
+            const targetNorm = hit.face.normal.clone().normalize();
+
+            probeRingMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), targetNorm);
+
+          }
+
+
+
+          document.getElementById('probe-vel').textContent = cfd.speed.toFixed(2);
+
+          document.getElementById('probe-press').textContent = `${cfd.pressure >= 0 ? '+' : ''}${cfd.pressure.toFixed(1)}`;
+
+          document.getElementById('probe-vort').textContent = cfd.vorticity.toFixed(1);
+
+          document.getElementById('probe-rad').textContent = cfd.r.toFixed(2);
+
+
+
+          cfdProbeEl.style.left = `${Math.min(e.clientX + 14, window.innerWidth - 320)}px`;
+
+          cfdProbeEl.style.top = `${Math.max(e.clientY - 36, 56)}px`;
+
+          cfdProbeEl.style.opacity = '1';
+
+        } else {
+
+          probeRingMesh.visible = false;
+
+          cfdProbeEl.style.opacity = '0';
+
+        }
+
+      } else {
+
+        probeRingMesh.visible = false;
+
+        cfdProbeEl.style.opacity = '0';
+
+      }
+
+
+
+      const visibleMeshes = interactiveMeshes.filter((m) => m.visible && m.parent && m.parent.visible);
+
+      const hits = raycaster.intersectObjects(visibleMeshes, false);
+
+
+
+      if (hits.length > 0) {
+
+        const hitSubId = hits[0].object.userData.subsystemId;
+
+        const sub = SUBSYSTEMS.find((s) => s.id === hitSubId);
+
+        if (sub) {
+
+          renderer.domElement.style.cursor = 'pointer';
+
+          if (state.hoveredPart !== hitSubId) highlightPart(hitSubId);
+
+          document.getElementById('tooltip-code').textContent = sub.code;
+
+          document.getElementById('tooltip-name').textContent = sub.name;
+
+          document.getElementById('tooltip-dim').textContent = sub.getMetrics(state)[0].v;
+
+          tooltipEl.style.left = `${Math.min(e.clientX + 14, window.innerWidth - 260)}px`;
+
+          tooltipEl.style.top = `${Math.min(e.clientY + 12, window.innerHeight - 48)}px`;
+
+          tooltipEl.style.opacity = '1';
+
+          return;
+
+        }
+
+      }
+
+
+
+      renderer.domElement.style.cursor = 'grab';
+
+      if (state.hoveredPart !== null) highlightPart(null);
+
+      tooltipEl.style.opacity = '0';
+
+    });
+
+
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+
+    });
+
+
+
+    renderer.domElement.addEventListener('pointerup', (e) => {
+
+      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+
+      if (dist < 5 && state.hoveredPart) {
+
+        selectPart(state.hoveredPart);
+
+      }
+
+    });
+
+
+
+    renderer.domElement.addEventListener('dblclick', () => {
+
+      if (state.hoveredPart) selectPart(state.hoveredPart);
+
+      else selectPart(null);
+
+    });
+
+
+
+    // =========================================================================
+
+    // 15. ANIMATION & KINEMATICS LOOP
+
+    // =========================================================================
+
+    const clock = new THREE.Clock();
+
+
+
+    function updateCADPins() {
+
+      const w = window.innerWidth;
+
+      const h = window.innerHeight;
+
+      const tempVec = new THREE.Vector3();
+
+
+
+      const gaugeBadge = document.getElementById('head-gauge-badge');
+
+      if (gaugeBadge && state.showHeadGauge && headGaugeGroup.visible) {
+
+        tempVec.copy(headGaugeMidWorld).project(camera);
+
+        if (tempVec.z > 1.0) {
+
+          gaugeBadge.style.opacity = '0';
+
+        } else {
+
+          gaugeBadge.style.opacity = '1';
+
+          gaugeBadge.style.left = `${(tempVec.x * 0.5 + 0.5) * w}px`;
+
+          gaugeBadge.style.top = `${(-tempVec.y * 0.5 + 0.5) * h}px`;
+
+        }
+
+      }
+
+
+
+      if (!state.showPins) return;
+
+
+
+      Object.values(pinElements).forEach(({ div, line, dot, sub }) => {
+
+        const group = subsystemGroups[sub.id];
+
+        if (!group || !group.visible) {
+
+          div.style.opacity = '0';
+
+          line.style.opacity = '0';
+
+          dot.style.opacity = '0';
+
+          return;
+
+        }
+
+
+
+        tempVec.copy(sub.pinLocal);
+
+        group.localToWorld(tempVec);
+
+        tempVec.project(camera);
+
+
+
+        if (tempVec.z > 1.0) {
+
+          div.style.opacity = '0';
+
+          line.style.opacity = '0';
+
+          dot.style.opacity = '0';
+
+          return;
+
+        }
+
+
+
+        const sx = (tempVec.x * 0.5 + 0.5) * w;
+
+        const sy = (-tempVec.y * 0.5 + 0.5) * h;
+
+        const ex = sx + sub.pinOffset.x;
+
+        const ey = sy + sub.pinOffset.y;
+
+
+
+        div.style.opacity = '1';
+
+        line.style.opacity = '1';
+
+        dot.style.opacity = '1';
+
+
+
+        dot.setAttribute('cx', sx.toFixed(1));
+
+        dot.setAttribute('cy', sy.toFixed(1));
+
+        line.setAttribute('x1', sx.toFixed(1));
+
+        line.setAttribute('y1', sy.toFixed(1));
+
+        line.setAttribute('x2', ex.toFixed(1));
+
+        line.setAttribute('y2', ey.toFixed(1));
+
+
+
+        if (sub.pinOffset.x < 0) {
+
+          div.style.left = `${ex}px`;
+
+          div.style.top = `${ey}px`;
+
+          div.style.transform = 'translate(-100%, -50%)';
+
+        } else {
+
+          div.style.left = `${ex}px`;
+
+          div.style.top = `${ey}px`;
+
+          div.style.transform = 'translate(0, -50%)';
+
+        }
+
+      });
+
+    }
+
+
+
+    function animate() {
+
+      requestAnimationFrame(animate);
+
+
+
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      const elapsed = clock.getElapsedTime();
+
+      cfdUniforms.uTime.value = elapsed;
+
+
+
+      // 1. Interpolate CAD View Modes & River Environment Dimming
+
+      const targetExplode =
+
+        state.targetExplodeOverride !== null
+
+          ? state.targetExplodeOverride
+
+          : state.viewMode === 'exploded'
+
+          ? 1.0
+
+          : 0.0;
+
+      const targetCutaway = state.viewMode === 'cutaway' ? 1.0 : 0.0;
+
+      const targetXray = state.viewMode === 'xray' ? 1.0 : 0.0;
+
+      const targetRiverFade = state.workspace === 'detail' ? 0.16 : 1.0;
+
+
+
+      state.explodeFactor = THREE.MathUtils.lerp(state.explodeFactor, targetExplode, dt * 6.5);
+
+      state.cutawayFactor = THREE.MathUtils.lerp(state.cutawayFactor, targetCutaway, dt * 7.5);
+
+      state.xrayFactor = THREE.MathUtils.lerp(state.xrayFactor, targetXray, dt * 7.5);
+
+      state.riverFadeFactor = THREE.MathUtils.lerp(state.riverFadeFactor, targetRiverFade, dt * 6.0);
+
+
+
+      const ex = state.explodeFactor;
+
+      impellerCapGroup.position.y = ex * 1.45;
+
+      gearboxGroup.position.y = ex * 0.85;
+
+      impellerRotorGroup.position.y = ex * 0.22;
+
+      shroudGroup.position.y = ex * -0.08;
+
+      sealingGroup.position.y = ex * -0.32;
+
+      generatorGroup.position.y = ex * -0.68;
+
+      supportGroup.position.y = ex * -1.18;
+
+
+
+      if (partVisibility.basin) {
+
+        basinGroup.visible = ex < 0.85;
+
+      }
+
+
+
+      // Gently fade river weir surroundings when inspecting Turbine Core
+
+      riverEnvironmentMeshes.forEach((m) => {
+
+        if (!m.userData.hasClonedMat) {
+
+          m.material = m.material.clone();
+
+          m.userData.baseOp = m.material.opacity;
+
+          m.userData.hasClonedMat = true;
+
+        }
+
+        m.material.opacity = m.userData.baseOp * state.riverFadeFactor;
+
+      });
+
+
+
+      cutawayShellMeshes.forEach((m) => {
+
+        if (!m.userData.hasClonedMat) {
+
+          m.material = m.material.clone();
+
+          m.userData.hasClonedMat = true;
+
+        }
+
+        const cutOpacity = 1.0 - state.cutawayFactor * 0.92;
+
+        const xrayOpacity = 1.0 - state.xrayFactor * 0.78;
+
+        const finalOpacity = Math.min(cutOpacity, xrayOpacity);
+
+        m.material.opacity = finalOpacity;
+
+        m.visible = finalOpacity > 0.11;
+
+      });
+
+
+
+      outerHousingMeshes.forEach((m) => {
+
+        if (cutawayShellMeshes.includes(m)) return;
+
+        if (!m.userData.hasClonedMat) {
+
+          m.material = m.material.clone();
+
+          m.userData.hasClonedMat = true;
+
+        }
+
+        const baseOp = m.userData.subsystemId === 'basin' ? 0.92 - ex * 0.75 : 1.0;
+
+        const xrayOp = 1.0 - state.xrayFactor * 0.78;
+
+        m.material.opacity = Math.min(baseOp, xrayOp);
+
+      });
+
+
+
+      // 2. Rotate Impeller, Planetary Gearbox (1:15) & Generator PM Rotor
+
+      const omegaImpeller = (state.rpm * 2 * Math.PI) / 60;
+
+      state.impellerAngle -= omegaImpeller * dt;
+
+      impellerRotorGroup.rotation.y = state.impellerAngle;
+
+
+
+      state.gearAngle -= omegaImpeller * 15.0 * dt;
+
+      sunGearMeshGroup.rotation.y = state.gearAngle;
+
+      planetaryCarrier.rotation.y = state.impellerAngle * 2.5;
+
+      planetGears.forEach((pg) => {
+
+        pg.rotation.y = -state.gearAngle * 0.45;
+
+      });
+
+      generatorRotor.rotation.y = state.gearAngle;
+
+
+
+      // 3. Smooth Camera Flight
+
+      if (state.cameraAnimating) {
+
+        camera.position.lerp(state.targetCamPos, dt * 4.5);
+
+        controls.target.lerp(state.targetLookAt, dt * 4.5);
+
+        if (
+
+          camera.position.distanceTo(state.targetCamPos) < 0.015 &&
+
+          controls.target.distanceTo(state.targetLookAt) < 0.015
+
+        ) {
+
+          state.cameraAnimating = false;
+
+        }
+
+      }
+
+      controls.update();
+
+
+
+      // 4. Project 3D Annotations & Render
+
+      updateCADPins();
+
+      renderer.render(scene, camera);
+
+    }
+
+
+
+    window.addEventListener('resize', () => {
+
+      camera.aspect = window.innerWidth / window.innerHeight;
+
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+    });
+
+
+
+    window.addEventListener('load', () => {
+
+      updateHydroSimulation();
+
+      animate();
+
+    });
+
+  </script>
+
+</body>
+
+</html>
